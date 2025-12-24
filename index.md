@@ -15,7 +15,7 @@ description: 18年运维老兵 · AI部署专家 · Python自动化架构师的�
     <a href="/blog.md" style="background: white; color: #1e3a8a; padding: 12px 30px; border-radius: 8px; font-weight: 600; text-decoration: none; margin-right: 15px;">
       查看完整简历
     </a>
-    <a href="/2025/12/24/AI站点部署与CDN防御实战（避坑指南）.html" style="background: rgba(255,255,255,0.2); color: white; padding: 12px 30px; border-radius: 8px; font-weight: 600; text-decoration: none; border: 1px solid white;">
+    <a href="/_posts/2025-12-24AI站点部署与CDN防御实战（避坑指南）.md" style="background: rgba(255,255,255,0.2); color: white; padding: 12px 30px; border-radius: 8px; font-weight: 600; text-decoration: none; border: 1px solid white;">
       浏览技术文章
     </a>
   </div>
