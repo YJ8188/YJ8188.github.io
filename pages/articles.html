@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技术文章 - 何哥的博客</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.light {
+            background-color: #f8fafc;
+            color: #1f2937;
+        }
+
+        body.dark {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        /* 导航栏 - 复用首页样式 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        body.light .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .navbar {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        body.light .nav-menu a {
+            color: #4b5563;
+        }
+
+        body.dark .nav-menu a {
+            color: #cbd5e1;
+        }
+
+        body.light .nav-menu a:hover,
+        body.light .nav-menu a.active {
+            color: #3b82f6;
+            background: #f3f4f6;
+        }
+
+        body.dark .nav-menu a:hover,
+        body.dark .nav-menu a.active {
+            color: #60a5fa;
+            background: #1e293b;
+        }
+
+        .theme-toggle {
+            width: 50px;
+            height: 26px;
+            border-radius: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        body.light .theme-toggle {
+            background: #e5e7eb;
+        }
+
+        body.dark .theme-toggle {
+            background: #3b82f6;
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            background: white;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark .theme-toggle::before {
+            transform: translateX(24px);
+        }
+
+        /* 主内容 */
+        .main-content {
+            max-width: 1200px;
+            margin: 100px auto 60px;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .page-title {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+        }
+
+        body.light .page-subtitle {
+            color: #6b7280;
+        }
+
+        body.dark .page-subtitle {
+            color: #94a3b8;
+        }
+
+        /* 文章分类标签 */
+        .category-filter {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .category-tag {
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        body.light .category-tag {
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 2px solid transparent;
+        }
+
+        body.dark .category-tag {
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 2px solid transparent;
+        }
+
+        body.light .category-tag:hover,
+        body.light .category-tag.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        body.dark .category-tag:hover,
+        body.dark .category-tag.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #60a5fa;
+        }
+
+        /* 文章列表 */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .article-card {
+            border-radius: 16px;
+            padding: 30px;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        body.light .article-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .article-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .article-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        body.light .article-meta {
+            color: #6b7280;
+        }
+
+        body.dark .article-meta {
+            color: #94a3b8;
+        }
+
+        .article-category {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .category-operations {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .category-ai {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .category-python {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .category-security {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        body.dark .category-operations {
+            background: #1e3a8a;
+            color: #93c5fd;
+        }
+
+        body.dark .category-ai {
+            background: #064e3b;
+            color: #6ee7b7;
+        }
+
+        body.dark .category-python {
+            background: #78350f;
+            color: #fde68a;
+        }
+
+        body.dark .category-security {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        .article-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        body.light .article-title {
+            color: #1f2937;
+        }
+
+        body.dark .article-title {
+            color: #f1f5f9;
+        }
+
+        .article-excerpt {
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        body.light .article-excerpt {
+            color: #4b5563;
+        }
+
+        body.dark .article-excerpt {
+            color: #94a3b8;
+        }
+
+        .read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        body.light .read-more {
+            color: #3b82f6;
+        }
+
+        body.dark .read-more {
+            color: #60a5fa;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .page-title {
+                font-size: 32px;
+            }
+
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="light">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="logo">何哥的博客</a>
+            <ul class="nav-menu">
+                <li><a href="../index.html">首页</a></li>
+                <li><a href="../index.html#projects">项目案例</a></li>
+                <li><a href="../index.html#experience">工作经历</a></li>
+                <li><a href="articles.html" class="active">技术文章</a></li>
+                <li><a href="about.html">关于我</a></li>
+            </ul>
+            <div class="theme-toggle" onclick="toggleTheme()"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- 页面头部 -->
+        <div class="page-header">
+            <h1 class="page-title">📚 技术文章</h1>
+            <p class="page-subtitle">分享运维实战经验、AI部署技巧与Python自动化方案</p>
+        </div>
+
+        <!-- 分类筛选 -->
+        <div class="category-filter">
+            <div class="category-tag active" data-category="all">全部文章</div>
+            <div class="category-tag" data-category="operations">运维实战</div>
+            <div class="category-tag" data-category="ai">AI部署</div>
+            <div class="category-tag" data-category="python">Python自动化</div>
+            <div class="category-tag" data-category="security">安全防护</div>
+        </div>
+
+        <!-- 文章列表 -->
+        <div class="articles-grid">
+            <!-- 文章卡片示例 -->
+            <a href="../posts/docker-deployment.html" class="article-card" data-category="operations">
+                <div class="article-meta">
+                    <span class="article-category category-operations">运维实战</span>
+                    <span>2025-12-20</span>
+                    <span>阅读 5 分钟</span>
+                </div>
+                <h3 class="article-title">Docker容器化部署完全指南</h3>
+                <p class="article-excerpt">从零开始学习Docker,掌握容器化部署的最佳实践。本文详细介绍Dockerfile编写、镜像优化、容器编排等核心技能...</p>
+                <span class="read-more">阅读全文 →</span>
+            </a>
+
+            <a href="../posts/ai-site-security.html" class="article-card" data-category="ai">
+                <div class="article-meta">
+                    <span class="article-category category-ai">AI部署</span>
+                    <span>2025-12-18</span>
+                    <span>阅读 8 分钟</span>
+                </div>
+                <h3 class="article-title">AI站点安全防护实战:如何抵御DDoS攻击</h3>
+                <p class="article-excerpt">分享AI平台遭受1000+次攻击后总结的防护经验,包括CDN配置、流量清洗、IP黑名单等多层防御策略...</p>
+                <span class="read-more">阅读全文 →</span>
+            </a>
+
+            <a href="../posts/python-automation.html" class="article-card" data-category="python">
+                <div class="article-meta">
+                    <span class="article-category category-python">Python自动化</span>
+                    <span>2025-12-15</span>
+                    <span>阅读 6 分钟</span>
+                </div>
+                <h3 class="article-title">用Python自动化批量部署服务器</h3>
+                <p class="article-excerpt">编写一个自动化脚本,实现对100+台服务器的批量配置、软件安装和环境部署,节省90%的重复劳动...</p>
+                <span class="read-more">阅读全文 →</span>
+            </a>
+
+            <a href="../posts/cdn-optimization.html" class="article-card" data-category="security">
+                <div class="article-meta">
+                    <span class="article-category category-security">安全防护</span>
+                    <span>2025-12-12</span>
+                    <span>阅读 7 分钟</span>
+                </div>
+                <h3 class="article-title">CDN加速与安全防护双重优化方案</h3>
+                <p class="article-excerpt">深度解析CDN的工作原理,分享如何在提升访问速度的同时,加固网站安全防线,保障99.9%可用性...</p>
+                <span class="read-more">阅读全文 →</span>
+            </a>
+
+            <a href="../posts/database-security.html" class="article-card" data-category="security">
+                <div class="article-meta">
+                    <span class="article-category category-security">安全防护</span>
+                    <span>2025-12-10</span>
+                    <span>阅读 10 分钟</span>
+                </div>
+                <h3 class="article-title">数据库安全加固:从权限控制到备份恢复</h3>
+                <p class="article-excerpt">全面讲解数据库安全的各个环节,包括访问控制、SQL注入防护、数据加密、定期备份等企业级方案...</p>
+                <span class="read-more">阅读全文 →</span>
+            </a>
+
+            <a href="../posts/monitoring-system.html" class="article-card" data-category="operations">
+                <div class="article-meta">
+                    <span class="article-category category-operations">运维实战</span>
+                    <span>2025-12-08</span>
+                    <span>阅读 9 分钟</span>
+                </div>
+                <h3 class="article-title">搭建企业级监控告警系统</h3>
+                <p class="article-excerpt">使用Prometheus+Grafana构建完整的监控体系,实现服务器性能监控、告警通知、可视化大屏展示...</p>
+                <span class="read-more">阅读全文 →</span>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        // 主题切换功能
+        function toggleTheme() {
+            const body = document.body;
+            if (body.classList.contains('light')) {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // 页面加载时恢复主题
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.classList.add(savedTheme);
+        });
+
+        // 分类筛选功能
+        document.querySelectorAll('.category-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                // 移除所有active类
+                document.querySelectorAll('.category-tag').forEach(t => t.classList.remove('active'));
+                // 添加当前active类
+                this.classList.add('active');
+                
+                const category = this.dataset.category;
+                const articles = document.querySelectorAll('.article-card');
+                
+                articles.forEach(article => {
+                    if (category === 'all' || article.dataset.category === category) {
+                        article.style.display = 'block';
+                    } else {
+                        article.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
