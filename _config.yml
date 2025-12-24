@@ -1,86 +1,84 @@
-#
 # This file contains configuration flags to customize your site
-#
+# 核心信息：突出运维专家身份，简洁高端
+name: 何哥 | 运维技术博客
+description: 18年运维老兵 · AI部署专家 · Python自动化架构师 | 专注服务器运维、云原生实践与技术干货分享
+avatar: https://picsum.photos/id/1005/400/400 # 专业商务头像（免费无版权，可直接使用）
 
-# Name of your site (displayed in the header)
-name: Your Name
-
-# Short bio or description (displayed in the header)
-description: Web Developer from Somewhere
-
-# URL of your avatar or profile pic (you could use your GitHub profile pic)
-avatar: https://raw.githubusercontent.com/barryclark/jekyll-now/master/images/jekyll-logo.png
-
-#
-# Flags below are optional
-#
-
-# Includes an icon in the footer for each username you enter
+# 可选配置：强化功能与高端质感
 footer-links:
   dribbble:
-  email:
+  email: 34296407@qq.com # 保持你的联系邮箱
   facebook:
   flickr:
-  github: barryclark/jekyll-now
+  github: YJ8188 # 替换为你的GitHub账号（显示个人主页链接）
   instagram:
   linkedin:
   pinterest:
-  rss: # just type anything here for a working RSS icon
-  twitter: jekyllrb
-  stackoverflow: # your stackoverflow profile, e.g. "users/50476/bart-kiers"
-  youtube: # channel/<your_long_string> or user/<user-name>
-  googleplus: # anything in your profile username that comes after plus.google.com/
+  rss: true # 启用RSS订阅（高端博客标配）
+  twitter:
+  stackoverflow:
+  youtube:
+  googleplus:
 
-
-# Enter your Disqus shortname (not your username) to enable commenting on posts
-# You can find your shortname on the Settings page of your Disqus account
+# 评论功能：默认关闭，需要时可开启（留空不影响高端感）
 disqus:
 
-# Enter your Google Analytics web tracking code (e.g. UA-2110908-2) to activate tracking
+# 网站统计：留空不影响使用，后续可添加Google Analytics
 google_analytics:
 
-# Your website URL (e.g. http://barryclark.github.io or http://www.barryclark.co)
-# Used for Sitemap.xml and your RSS feed
-url:
+# 关键配置：必填（影响SEO和链接跳转）
+url: https://YJ8188.github.io # 你的博客完整域名（必须填）
+baseurl: "" # 个人站点留空，无需修改
 
-# If you're hosting your site at a Project repository on GitHub pages
-# (http://yourusername.github.io/repository-name)
-# and NOT your User repository (http://yourusername.github.io)
-# then add in the baseurl here, like this: "/repository-name"
-baseurl: ""
+# 导航配置：清晰分区，适配简历页（高端博客必备）
+nav:
+  首页: /
+  关于我: /about.html
+  个人简历: /resume.html # 关联你之前创建的简历页
+  技术分享: /posts.html
+  联系方式: mailto:34296407@qq.com # 一键发邮件功能
 
-#
-# !! You don't need to change any of the configuration flags below !!
-#
-
-permalink: /:title/
-
-# The release of Jekyll Now that you're using
+# 高级优化：提升性能与质感
+permalink: /posts/:year/:month/:day/:title/ # URL结构化（利于SEO和高端感）
 version: v1.2.0
 
-# Jekyll 3 now only supports Kramdown for Markdown
+# 代码高亮：优化运维技术博客的代码展示（适配Python/Shell等代码）
 kramdown:
-  # Use GitHub flavored markdown, including triple backtick fenced code blocks
   input: GFM
-  # Jekyll 3 and GitHub Pages now only support rouge for syntax highlighting
   syntax_highlighter: rouge
   syntax_highlighter_opts:
-    # Use existing pygments syntax highlighting css
     css_class: 'highlight'
+    line_numbers: true # 显示代码行号（技术博客实用功能）
 
-# Set the Sass partials directory, as we're using @imports
+# 样式优化：压缩CSS，提升加载速度（高端网站必备）
 sass:
-  style: :expanded # You might prefer to minify using :compressed
+  style: :compressed # 压缩CSS文件，减少加载时间
 
-# Use the following plug-ins
+# 插件增强：保留核心插件，新增性能优化插件
 gems:
-  - jekyll-sitemap # Create a sitemap using the official Jekyll sitemap gem
-  - jekyll-feed # Create an Atom feed using the official Jekyll feed gem
+  - jekyll-sitemap # 生成站点地图（利于SEO）
+  - jekyll-feed # 生成RSS订阅
+  - jekyll-minifier # 压缩HTML/CSS/JS（提升加载速度）
+  - jekyll-paginate # 分页功能（后续文章多了有用）
 
-# Exclude these files from your production _site
+# 压缩配置：强化页面加载性能
+compress_html:
+  clippings: all
+  comments: all
+  endings: all
+  whitespace: all
+
+# 排除文件：保持构建清洁
 exclude:
   - Gemfile
   - Gemfile.lock
   - LICENSE
   - README.md
   - CNAME
+
+# 额外配置：适配运维技术博客定位
+author: 何帅其 # 作者名（显示在文章底部）
+lang: zh-CN # 网站语言（中文）
+timezone: Asia/Shanghai # 时区（确保文章时间正确）
+paginate: 10 # 每页显示10篇文章（合理分页，高端感）
+paginate_path: "/posts/page/:num/" # 分页路径
