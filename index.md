@@ -6,7 +6,7 @@ description: 18年运维老兵 · AI部署专家 · Python自动化架构师的�
 
 <!-- 顶部Banner：高端视觉+核心身份 -->
 <div style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 60px 20px; border-radius: 12px; margin-bottom: 40px; text-align: center;">
-  <h1 style="font-size: 36px; margin: 0 0 15px 0; font-weight: 700;">何帅其</h1>
+  <h1 style="font-size: 36px; margin: 0 0 15px 0; font-weight: 700;">何哥的博客</h1>
   <h2 style="font-size: 22px; margin: 0 0 20px 0; font-weight: 400; opacity: 0.9;">18年运维老兵 · AI部署专家 · Python自动化架构师</h2>
   <p style="font-size: 16px; max-width: 800px; margin: 0 auto; opacity: 0.85; line-height: 1.6;">
     专注服务器运维、云原生实践、AI站点部署与Python自动化，分享可落地的技术方案、踩坑经验与行业洞察
