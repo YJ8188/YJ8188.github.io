@@ -4,125 +4,247 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI站点部署与CDN防御实战（避坑指南）</title>
-    <!-- 预加载核心字体提升性能 -->
+    <!-- 预加载高端字体 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- 引入图标库（返回按钮图标） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* 全局重置与基础样式 */
+        /* 全局变量：高端低饱和色系 */
+        :root {
+            --primary-navy: #162d56;      /* 主深蓝（高端沉稳） */
+            --primary-teal: #068975;      /* 主青绿（运维专业感） */
+            --warning-amber: #e67e22;     /* 警告色（低饱和） */
+            --danger-red: #dc3545;        /* 代码红色 */
+            --bg-light: #f9fafb;          /* 页面背景 */
+            --bg-card: #ffffff;           /* 卡片背景 */
+            --bg-code: #f1f5f9;           /* 代码背景 */
+            --text-primary: #1e293b;      /* 主文本 */
+            --text-secondary: #64748b;    /* 次要文本 */
+            --border-light: #e2e8f0;      /* 边框色 */
+            --shadow-xs: 0 1px 2px rgba(0,0,0,0.03);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.08);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: all 0.2s ease-in-out;
+        }
+
+        /* 全局重置：保证跨浏览器一致性 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            /* 主题色（符合WCAG对比度标准） */
-            --primary-dark: #1e3a8a;
-            --primary-green: #059669;
-            --danger-red: #dc2626;
-            --warning-yellow: #f59e0b;
-            --bg-light: #f8fafc;
-            --bg-code: #f1f5f9;
-            --text-main: #1e293b;
-            --text-secondary: #64748b;
-            --border-light: #e2e8f0;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+        html {
+            scroll-behavior: smooth; /* 平滑滚动 */
+            font-size: 16px;
         }
 
         body {
             font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 850px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 0 20px;
-            line-height: 1.7;
-            color: var(--text-main);
+            padding: 0 24px;
+            line-height: 1.75;
+            color: var(--text-primary);
             background-color: var(--bg-light);
-            padding-bottom: 60px;
+            padding-bottom: 80px;
         }
 
-        /* 语义化区块样式 */
-        header {
-            padding: 40px 0 20px;
+        /* 顶部导航栏：固定+磨砂玻璃 */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            margin-bottom: 32px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border-light);
-            margin-bottom: 30px;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            box-shadow: var(--shadow-xs);
         }
 
+        /* 高端返回按钮：磨砂+渐变+微交互 */
+        .back-home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary-navy), var(--primary-teal));
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            opacity: 0.95;
+        }
+
+        .back-home-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-xs);
+        }
+
+        .back-home-btn i {
+            font-size: 16px;
+        }
+
+        /* 头部标题区域 */
+        .header-content {
+            margin-bottom: 36px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        h1 {
+            color: var(--primary-navy);
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.25;
+        }
+
+        .header-desc {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            max-width: 700px;
+        }
+
+        /* 目录导航：高端卡片样式 */
+        .toc {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 36px;
+            border-left: 4px solid var(--primary-teal);
+        }
+
+        .toc h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-navy);
+            margin-bottom: 16px;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            gap: 12px;
+        }
+
+        .toc li a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 15px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            display: inline-block;
+        }
+
+        .toc li a:hover {
+            color: var(--primary-teal);
+            background-color: rgba(6, 137, 117, 0.05);
+            transform: translateX(4px);
+        }
+
+        /* 主内容容器：网格布局+统一间距 */
         main {
             display: grid;
-            gap: 30px;
+            gap: 32px;
         }
 
-        section {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
+        /* 内容板块：高端卡片 */
+        .content-section {
+            background: var(--bg-card);
+            padding: 32px;
+            border-radius: var(--radius-md);
             box-shadow: var(--shadow-sm);
-            transition: box-shadow 0.2s ease;
+            transition: var(--transition);
         }
 
-        section:hover {
+        .content-section:hover {
             box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
 
-        /* 标题样式 */
-        h1 {
-            color: var(--primary-dark);
-            font-size: clamp(1.8rem, 4vw, 2.5rem);
-            font-weight: 700;
-            margin-bottom: 15px;
-            line-height: 1.3;
-        }
-
+        /* 标题层级：严格对齐+统一间距 */
         h2 {
-            color: var(--primary-green);
-            font-size: clamp(1.4rem, 3vw, 1.8rem);
+            color: var(--primary-teal);
+            font-size: clamp(1.4rem, 3vw, 2rem);
             font-weight: 600;
-            margin: 20px 0 15px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(6, 137, 117, 0.1);
         }
 
         h3 {
-            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
             font-weight: 600;
-            margin: 18px 0 12px;
-            color: var(--primary-dark);
+            color: var(--primary-navy);
+            margin: 24px 0 16px;
         }
 
-        /* 文本样式 */
+        /* 文本样式：规整排版 */
         p {
-            margin-bottom: 12px;
-            color: var(--text-main);
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            font-size: 15px;
+            line-height: 1.8;
         }
 
         strong {
             font-weight: 600;
+            color: var(--primary-navy);
         }
 
-        /* 列表样式 */
+        /* 列表样式：整洁对齐 */
         ul {
-            margin: 12px 0 12px 24px;
+            margin: 16px 0 16px 24px;
             line-height: 1.8;
         }
 
         li {
-            margin-bottom: 8px;
-            color: var(--text-main);
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            font-size: 15px;
         }
 
-        /* 代码块样式 */
+        /* 代码块：高端样式+复制按钮优化 */
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
         pre {
             background: var(--bg-code);
-            padding: 20px;
-            border-radius: 8px;
+            padding: 24px;
             overflow-x: auto;
-            margin: 15px 0;
             font-family: 'Roboto Mono', monospace;
-            font-size: 0.95rem;
-            border-left: 4px solid var(--primary-green);
-            box-shadow: var(--shadow-sm);
+            font-size: 14px;
+            line-height: 1.6;
+            border-left: 4px solid var(--primary-teal);
         }
 
         code {
@@ -131,120 +253,129 @@
             padding: 2px 6px;
             border-radius: 4px;
             background: var(--bg-code);
-            font-size: 0.95rem;
-        }
-
-        /* 坑点提示样式 */
-        .warning-tip {
-            background: rgba(245, 158, 11, 0.1);
-            border-left: 4px solid var(--warning-yellow);
-            padding: 12px 16px;
-            margin: 15px 0;
-            border-radius: 4px;
-        }
-
-        .warning-tip strong {
-            color: var(--warning-yellow);
-        }
-
-        /* 可复制代码按钮 */
-        .code-container {
-            position: relative;
+            font-size: 14px;
         }
 
         .copy-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 4px 10px;
-            background: var(--primary-green);
+            top: 12px;
+            right: 12px;
+            padding: 8px 16px;
+            background: var(--primary-teal);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 0.85rem;
-            transition: background 0.2s ease;
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--transition);
         }
 
         .copy-btn:hover {
-            background: #047857;
+            background: #057865;
         }
 
         .copy-btn.copied {
             background: #10b981;
         }
 
-        /* 目录导航 */
-        .toc {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-sm);
+        /* 坑点提示：高端警告样式 */
+        .warning-tip {
+            background: rgba(230, 126, 34, 0.05);
+            border-left: 4px solid var(--warning-amber);
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: var(--radius-sm);
         }
 
-        .toc h4 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--primary-dark);
+        .warning-tip strong {
+            color: var(--warning-amber);
+            display: block;
+            margin-bottom: 8px;
+            font-size: 15px;
         }
 
-        .toc ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .toc li {
-            margin-bottom: 6px;
-        }
-
-        .toc a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .toc a:hover {
-            color: var(--primary-green);
-            text-decoration: underline;
-        }
-
-        /* 响应式适配 */
+        /* 响应式适配：全端整洁 */
         @media (max-width: 768px) {
-            header {
-                padding: 30px 0 15px;
+            .top-nav {
+                padding: 12px 0;
+                margin-bottom: 24px;
             }
 
-            section {
+            .back-home-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .header-content {
+                margin-bottom: 24px;
+                padding-bottom: 16px;
+            }
+
+            .toc {
+                padding: 20px;
+                margin-bottom: 24px;
+            }
+
+            .content-section {
                 padding: 20px;
             }
 
             pre {
-                padding: 15px;
-                font-size: 0.85rem;
+                padding: 16px;
+                font-size: 13px;
             }
 
-            .toc {
-                padding: 15px;
+            h1 {
+                font-size: clamp(1.6rem, 5vw, 2.2rem);
+            }
+
+            h2 {
+                font-size: clamp(1.2rem, 3vw, 1.6rem);
+                margin-bottom: 16px;
+            }
+
+            h3 {
+                font-size: clamp(1rem, 2vw, 1.2rem);
+                margin: 16px 0 12px;
             }
         }
 
-        /* 平滑滚动 */
-        html {
-            scroll-behavior: smooth;
+        @media (max-width: 480px) {
+            body {
+                padding: 0 16px;
+            }
+
+            .content-section {
+                padding: 16px;
+            }
+
+            .toc {
+                padding: 16px;
+            }
+
+            .warning-tip {
+                padding: 12px 16px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 头部区域 -->
-    <header>
-        <h1>AI站点部署与CDN防御实战（避坑指南）</h1>
-        <p>作为有18年运维经验的技术人，我在2023年接手AI站点部署项目后，踩过不少坑，今天把可落地的实战方案分享给大家。</p>
-    </header>
+    <!-- 顶部导航栏：包含高端返回按钮 -->
+    <div class="top-nav">
+        <a href="/" class="back-home-btn">
+            <i class="fas fa-arrow-left"></i>
+            <span>返回主页</span>
+        </a>
+    </div>
 
-    <!-- 目录导航 -->
+    <!-- 头部标题区域 -->
+    <div class="header-content">
+        <h1>AI站点部署与CDN防御实战（避坑指南）</h1>
+        <p class="header-desc">作为有18年运维经验的技术人，我在2023年接手AI站点部署项目后，踩过不少坑，今天把可落地的实战方案分享给大家。</p>
+    </div>
+
+    <!-- 目录导航：高端卡片样式 -->
     <div class="toc">
         <h4>目录</h4>
         <ul>
@@ -255,17 +386,17 @@
         </ul>
     </div>
 
-    <!-- 主内容区域 -->
+    <!-- 主内容区域：规整网格布局 -->
     <main>
         <!-- 项目背景 -->
-        <section id="background">
+        <section class="content-section" id="background">
             <h2>一、项目背景</h2>
-            <p>需求：搭建高可用AI站点，支持500+并发访问，抵御DOS/CC攻击，同时对接第三方API实现功能闭环。<br>
-            环境：云服务器（CentOS 7）+ Nginx + CDN + MySQL 8.0。</p>
+            <p>需求：搭建高可用AI站点，支持500+并发访问，抵御DOS/CC攻击，同时对接第三方API实现功能闭环。</p>
+            <p>环境：云服务器（CentOS 7）+ Nginx + CDN + MySQL 8.0。</p>
         </section>
 
         <!-- 核心部署步骤 -->
-        <section id="deploy-steps">
+        <section class="content-section" id="deploy-steps">
             <h2>二、核心部署步骤（避坑版）</h2>
             
             <h3>1. 服务器环境初始化（必做）</h3>
@@ -314,7 +445,7 @@ def ai_api_call(prompt):
         </section>
 
         <!-- 最终成果 -->
-        <section id="achievements">
+        <section class="content-section" id="achievements">
             <h2>三、最终成果</h2>
             <ul>
                 <li>站点稳定性：99.9%（半年内仅因机房割接中断1次，5分钟恢复）；</li>
@@ -324,7 +455,7 @@ def ai_api_call(prompt):
         </section>
 
         <!-- 总结 -->
-        <section id="summary">
+        <section class="content-section" id="summary">
             <h2>四、总结</h2>
             <p>AI站点部署的核心是“环境稳+防护严+代码鲁棒”，运维人员要重点关注API超时、IP泄露、攻击防护这三个点，才能保证站点长期可用。</p>
         </section>
