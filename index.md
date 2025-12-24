@@ -12,7 +12,7 @@ description: 18年运维老兵 · AI部署专家 · Python自动化架构师的�
     专注服务器运维、云原生实践、AI站点部署与Python自动化，分享可落地的技术方案、踩坑经验与行业洞察
   </p>
   <div style="margin-top: 30px;">
-    <a href="/blog.md" style="background: white; color: #1e3a8a; padding: 12px 30px; border-radius: 8px; font-weight: 600; text-decoration: none; margin-right: 15px;">
+    <a href="/resume.html" style="background: white; color: #1e3a8a; padding: 12px 30px; border-radius: 8px; font-weight: 600; text-decoration: none; margin-right: 15px;">
       查看完整简历
     </a>
     <a href="/ai-deploy-cdn-defense.html" style="background: rgba(255,255,255,0.2); color: white; padding: 12px 30px; border-radius: 8px; font-weight: 600; text-decoration: none; border: 1px solid white;">
