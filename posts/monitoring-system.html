@@ -1,0 +1,3915 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搭建企业级监控告警系统 | 运维实战</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+            line-height: 1.7;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.light {
+            background-color: #f8fafc;
+            color: #1f2937;
+        }
+
+        body.dark {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        body.light .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .navbar {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        body.light .nav-menu a {
+            color: #4b5563;
+        }
+
+        body.dark .nav-menu a {
+            color: #cbd5e1;
+        }
+
+        body.light .nav-menu a:hover {
+            color: #6366f1;
+            background: #f3f4f6;
+        }
+
+        body.dark .nav-menu a:hover {
+            color: #a78bfa;
+            background: #1e293b;
+        }
+
+        .theme-toggle {
+            width: 50px;
+            height: 26px;
+            border-radius: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        body.light .theme-toggle {
+            background: #e5e7eb;
+        }
+
+        body.dark .theme-toggle {
+            background: #6366f1;
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            background: white;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark .theme-toggle::before {
+            transform: translateX(24px);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            max-width: 900px;
+            margin: 100px auto 60px;
+            padding: 0 20px;
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* 文章头部 */
+        .article-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid;
+        }
+
+        body.light .article-header {
+            border-color: #e5e7eb;
+        }
+
+        body.dark .article-header {
+            border-color: #334155;
+        }
+
+        .article-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        body.light .article-title {
+            color: #1f2937;
+        }
+
+        body.dark .article-title {
+            color: #f1f5f9;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+        }
+
+        body.light .article-meta {
+            color: #6b7280;
+        }
+
+        body.dark .article-meta {
+            color: #94a3b8;
+        }
+
+        .article-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .category-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+        }
+
+        .article-intro {
+            font-size: 16px;
+            line-height: 1.8;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+        }
+
+        body.light .article-intro {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        body.dark .article-intro {
+            background: #1e293b;
+            color: #cbd5e1;
+        }
+
+        /* 目录 */
+        .toc {
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+            border-left: 4px solid #6366f1;
+        }
+
+        body.light .toc {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .toc {
+            background: #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .toc h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        body.light .toc h4 {
+            color: #1f2937;
+        }
+
+        body.dark .toc h4 {
+            color: #f1f5f9;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            gap: 10px;
+        }
+
+        .toc li a {
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: block;
+        }
+
+        body.light .toc li a {
+            color: #4b5563;
+        }
+
+        body.dark .toc li a {
+            color: #cbd5e1;
+        }
+
+        body.light .toc li a:hover {
+            color: #6366f1;
+            background: #f3f4f6;
+            transform: translateX(4px);
+        }
+
+        body.dark .toc li a:hover {
+            color: #a78bfa;
+            background: #0f172a;
+            transform: translateX(4px);
+        }
+
+        /* 目录激活状态 */
+        .toc li a.active {
+            color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+            font-weight: 600;
+            transform: translateX(8px);
+        }
+
+        body.dark .toc li a.active {
+            color: #a78bfa;
+            background: rgba(167, 139, 250, 0.1);
+        }
+
+        /* 内容区块 */
+        .content-section {
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        body.light .content-section {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .content-section {
+            background: #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .content-section:hover {
+            transform: translateY(-2px);
+        }
+
+        body.light .content-section:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark .content-section:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid;
+        }
+
+        body.light h2 {
+            color: #6366f1;
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        body.dark h2 {
+            color: #a78bfa;
+            border-color: rgba(167, 139, 250, 0.2);
+        }
+
+        h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 24px 0 16px;
+        }
+
+        body.light h3 {
+            color: #1f2937;
+        }
+
+        body.dark h3 {
+            color: #f1f5f9;
+        }
+
+        p {
+            margin-bottom: 16px;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        ul, ol {
+            margin: 16px 0 16px 24px;
+            line-height: 1.8;
+        }
+
+        li {
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        body.light strong {
+            color: #1f2937;
+        }
+
+        body.dark strong {
+            color: #f1f5f9;
+        }
+
+        /* 代码块 */
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre {
+            padding: 24px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            border-left: 4px solid #6366f1;
+        }
+
+        body.light pre {
+            background: #f1f5f9;
+        }
+
+        body.dark pre {
+            background: #0f172a;
+        }
+
+        code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        body.light code {
+            color: #dc2626;
+            background: #f1f5f9;
+        }
+
+        body.dark code {
+            color: #f87171;
+            background: #1e293b;
+        }
+
+        /* 代码语法高亮 */
+        .keyword { color: #6366f1; font-weight: bold; }
+        .string { color: #3b82f6; }
+        .constant { color: #8b5cf6; }
+        .comment { color: #6b7280; font-style: italic; }
+
+        body.dark .keyword { color: #a78bfa; }
+        body.dark .string { color: #60a5fa; }
+        body.dark .constant { color: #c4b5fd; }
+        body.dark .comment { color: #94a3b8; }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 8px 16px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #4f46e5;
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+        }
+
+        /* 信息提示 */
+        .info-tip {
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        body.light .info-tip {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        body.dark .info-tip {
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .info-tip strong {
+            color: #3b82f6;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* 警告提示 */
+        .warning-tip {
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        body.light .warning-tip {
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        body.dark .warning-tip {
+            background: rgba(245, 158, 11, 0.15);
+        }
+
+        .warning-tip strong {
+            color: #f59e0b;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* 成功提示 */
+        .success-tip {
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+
+        body.light .success-tip {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        body.dark .success-tip {
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        .success-tip strong {
+            color: #10b981;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 */
+        .monitoring-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .monitoring-table th, .monitoring-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid;
+        }
+
+        body.light .monitoring-table th {
+            background: #f1f5f9;
+            color: #1f2937;
+            border-color: #e5e7eb;
+        }
+
+        body.dark .monitoring-table th {
+            background: #0f172a;
+            color: #f1f5f9;
+            border-color: #334155;
+        }
+
+        body.light .monitoring-table td {
+            border-color: #e5e7eb;
+        }
+
+        body.dark .monitoring-table td {
+            border-color: #334155;
+        }
+
+        /* 特性卡片 */
+        .monitoring-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .monitoring-card {
+            padding: 20px;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        body.light .monitoring-card {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+        }
+
+        body.dark .monitoring-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+        }
+
+        .monitoring-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark .monitoring-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .monitoring-card h4 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6366f1;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .article-title {
+                font-size: 28px;
+            }
+
+            .content-section {
+                padding: 20px;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 13px;
+            }
+
+            .copy-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .monitoring-table th, .monitoring-table td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+
+            .monitoring-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 0 16px;
+            }
+
+            .toc {
+                padding: 16px;
+            }
+
+            .article-title {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            h3 {
+                font-size: 18px;
+            }
+
+            .monitoring-table {
+                font-size: 13px;
+            }
+        }
+
+        /* 回到顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #6366f1;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            transition: all 0.3s;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 999;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        /* 架构图样式 */
+        .architecture-diagram {
+            margin: 25px 0;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        body.light .architecture-diagram {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+        }
+
+        body.dark .architecture-diagram {
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+
+        .architecture-layer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 15px 0;
+        }
+
+        .layer-box {
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 8px 0;
+            width: 80%;
+            text-align: center;
+        }
+
+        body.light .layer-box {
+            background: white;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .layer-box {
+            background: #0f172a;
+            border: 1px solid #334155;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .layer-arrow {
+            font-size: 20px;
+            color: #6366f1;
+            margin: 5px 0;
+        }
+
+        body.dark .layer-arrow {
+            color: #a78bfa;
+        }
+
+        /* 指标卡片 */
+        .metric-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        body.light .metric-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+
+        body.dark .metric-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #6366f1;
+        }
+
+        body.dark .metric-value {
+            color: #a78bfa;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        body.dark .metric-label {
+            color: #94a3b8;
+        }
+
+        /* 告警级别 */
+        .alert-levels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .alert-level {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .alert-critical {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+
+        body.dark .alert-critical {
+            background: rgba(220, 38, 38, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fbbf24;
+        }
+
+        body.dark .alert-warning {
+            background: rgba(217, 119, 6, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border: 1px solid #93c5fd;
+        }
+
+        body.dark .alert-info {
+            background: rgba(29, 78, 216, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(147, 197, 253, 0.3);
+        }
+
+        /* 时间线 */
+        .timeline {
+            position: relative;
+            margin: 25px 0;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #6366f1;
+        }
+
+        body.dark .timeline::before {
+            background: #a78bfa;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+            padding-left: 20px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #6366f1;
+            border: 2px solid white;
+        }
+
+        body.dark .timeline-item::before {
+            background: #a78bfa;
+            border: 2px solid #1e293b;
+        }
+
+        .timeline-date {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #6366f1;
+        }
+
+        body.dark .timeline-date {
+            color: #a78bfa;
+        }
+
+        /* 比较表格 */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            padding: 14px 16px;
+            text-align: center;
+            background: #6366f1;
+            color: white;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 16px;
+            text-align: center;
+            border-bottom: 1px solid;
+        }
+
+        body.light .comparison-table td {
+            border-color: #e5e7eb;
+        }
+
+        body.dark .comparison-table td {
+            border-color: #334155;
+        }
+
+        .comparison-yes {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .comparison-no {
+            color: #ef4444;
+        }
+
+        .comparison-partial {
+            color: #f59e0b;
+        }
+    </style>
+</head>
+<body class="dark">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="logo">运维实战</a>
+            <ul class="nav-menu">
+                <li><a href="../index.html">首页</a></li>
+                <li><a href="../index.html#projects">项目案例</a></li>
+                <li><a href="../index.html#experience">工作经历</a></li>
+                <li><a href="../pages/articles.html">技术文章</a></li>
+                <li><a href="../pages/about.html">关于我</a></li>
+            </ul>
+            <div class="theme-toggle" onclick="toggleTheme()"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- 返回按钮 -->
+        <a href="../pages/articles.html" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            <span>返回文章列表</span>
+        </a>
+
+        <!-- 文章头部 -->
+        <div class="article-header">
+            <h1 class="article-title">搭建企业级监控告警系统</h1>
+            <div class="article-meta">
+                <span class="category-badge">运维实战</span>
+                <span><i class="far fa-calendar"></i> 2025-12-08</span>
+                <span><i class="far fa-clock"></i> 阅读 9 分钟</span>
+                <span><i class="far fa-eye"></i> 2345 次浏览</span>
+            </div>
+        </div>
+
+        <!-- 文章简介 -->
+        <div class="article-intro">
+            本文详细介绍了如何使用Prometheus和Grafana从零开始搭建一套完整的企业级监控告警系统。内容包括：监控体系设计、Prometheus安装与配置、Exporter部署、Grafana仪表板设计、告警规则配置、通知渠道集成（邮件、钉钉、企业微信等），以及生产环境优化建议。通过本教程，您将能够构建一套具备高可用性和扩展性的监控体系，满足企业IT系统的可观测性需求。
+        </div>
+
+        <!-- 目录 -->
+        <div class="toc">
+            <h4>📋 文章目录</h4>
+            <ul>
+                <li><a href="#overview">一、监控体系概述与设计原则</a></li>
+                <li><a href="#architecture">二、监控系统架构设计</a></li>
+                <li><a href="#prometheus">三、Prometheus部署与配置</a></li>
+                <li><a href="#exporters">四、各种Exporter部署</a></li>
+                <li><a href="#grafana">五、Grafana可视化与仪表板</a></li>
+                <li><a href="#alerting">六、告警规则与通知配置</a></li>
+                <li><a href="#high-availability">七、高可用与生产优化</a></li>
+                <li><a href="#summary">八、总结与最佳实践</a></li>
+            </ul>
+        </div>
+
+        <!-- 监控体系概述与设计原则 -->
+        <section class="content-section" id="overview">
+            <h2>一、监控体系概述与设计原则</h2>
+            
+            <h3>1. 监控的重要性与价值</h3>
+            <p>在现代化的IT系统中，监控已经从一个"可选项"变成了"必选项"。一个完善的监控体系能够：</p>
+            
+            <div class="monitoring-cards">
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-search"></i> 快速发现问题</h4>
+                    <p>实时发现系统异常，避免小问题演变成大故障。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-chart-line"></i> 性能优化依据</h4>
+                    <p>通过历史数据分析系统瓶颈，指导容量规划和性能优化。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-history"></i> 故障回溯分析</h4>
+                    <p>记录系统历史状态，便于故障原因分析和责任追溯。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-user-check"></i> SLA保障</h4>
+                    <p>量化服务可用性和性能，为SLA（服务等级协议）提供数据支持。</p>
+                </div>
+            </div>
+
+            <div class="warning-tip">
+                <strong>📊 监控数据价值：</strong>
+                <p>根据Google SRE（站点可靠性工程）的经验，有效的监控可以将MTTR（平均修复时间）降低70%以上，并将故障预测准确率提升到85%以上。</p>
+            </div>
+
+            <h3>2. 监控设计原则（Google四大黄金指标）</h3>
+            <p>Google SRE团队提出的四大黄金指标是监控设计的核心指导原则：</p>
+            
+            <div class="metric-cards">
+                <div class="metric-card">
+                    <div class="metric-value">延迟</div>
+                    <div class="metric-label">Latency</div>
+                    <p>服务处理请求所需时间</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">流量</div>
+                    <div class="metric-label">Traffic</div>
+                    <p>系统承载的请求量或并发量</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">错误率</div>
+                    <div class="metric-label">Errors</div>
+                    <p>请求失败或错误的比例</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">饱和度</div>
+                    <div class="metric-label">Saturation</div>
+                    <p>系统资源的使用程度</p>
+                </div>
+            </div>
+
+            <h3>3. 监控层级划分</h3>
+            <p>全面的监控体系应该覆盖以下四个层级：</p>
+            
+            <div class="architecture-diagram">
+                <div class="architecture-layer">
+                    <div class="layer-box" style="background: #4f46e5; color: white;">
+                        <i class="fas fa-globe"></i> 业务监控
+                    </div>
+                    <div class="layer-arrow">↓</div>
+                </div>
+                <div class="architecture-layer">
+                    <div class="layer-box" style="background: #7c3aed; color: white;">
+                        <i class="fas fa-cube"></i> 应用监控
+                    </div>
+                    <div class="layer-arrow">↓</div>
+                </div>
+                <div class="architecture-layer">
+                    <div class="layer-box" style="background: #8b5cf6; color: white;">
+                        <i class="fas fa-server"></i> 系统监控
+                    </div>
+                    <div class="layer-arrow">↓</div>
+                </div>
+                <div class="architecture-layer">
+                    <div class="layer-box" style="background: #a78bfa; color: white;">
+                        <i class="fas fa-network-wired"></i> 网络监控
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-tip">
+                <strong>🔍 监控覆盖度检查清单：</strong>
+                <p>1. <strong>业务指标</strong>：关键业务流程成功率、用户活跃度、订单量等<br>
+                2. <strong>应用指标</strong>：应用响应时间、错误率、吞吐量、JVM/GC状态等<br>
+                3. <strong>系统指标</strong>：CPU、内存、磁盘、网络使用率、进程状态等<br>
+                4. <strong>网络指标</strong>：网络延迟、丢包率、带宽使用率、连接数等</p>
+            </div>
+        </section>
+
+        <!-- 监控系统架构设计 -->
+        <section class="content-section" id="architecture">
+            <h2>二、监控系统架构设计</h2>
+            
+            <div class="success-tip">
+                <strong>🎯 架构设计目标：</strong>
+                <p>1. <strong>可扩展性</strong>：支持监控上千个节点<br>
+                2. <strong>高可用性</strong>：监控系统自身不能成为单点故障<br>
+                3. <strong>实时性</strong>：指标采集和告警延迟在秒级<br>
+                4. <strong>易用性</strong>：配置简单，可视化友好，便于问题定位</p>
+            </div>
+
+            <h3>1. 整体架构设计</h3>
+            <p>企业级监控系统通常采用以下架构：</p>
+            
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">查看架构</button>
+                <pre><code># 企业级监控系统架构
+
+"""
+数据采集层 (Data Collection)
+├── Node Exporter: 服务器基础指标
+├── MySQL Exporter: 数据库监控
+├── Nginx Exporter: Web服务器监控
+├── JMX Exporter: Java应用监控
+├── Blackbox Exporter: 网络探测
+└── 自定义Exporter: 业务指标采集
+
+数据存储与处理层 (Storage & Processing)
+├── Prometheus Server: 指标采集、存储、查询
+├── Prometheus Alertmanager: 告警管理
+├── Thanos/Cortex: 长期存储和集群方案（可选）
+└── 时序数据库: VictoriaMetrics/InfluxDB（替代方案）
+
+数据可视化层 (Visualization)
+├── Grafana: 仪表板展示
+├── 自定义Dashboard: 业务大屏
+└── 报表系统: 定期报告生成
+
+告警通知层 (Alerting & Notification)
+├── 邮件通知: SMTP集成
+├── 即时通讯: 钉钉/企业微信/Slack
+├── 短信通知: 云服务商API
+└── 电话告警: 紧急情况自动呼叫
+
+辅助组件 (Auxiliary Components)
+├── Service Discovery: 自动发现监控目标
+├── 配置管理: Ansible/Terraform自动化部署
+├── 权限控制: LDAP/OAuth2集成
+└── 日志集成: Loki/ELK Stack关联分析
+"""</code></pre>
+            </div>
+
+            <h3>2. 技术选型对比</h3>
+            <p>主流监控解决方案对比：</p>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>Prometheus</th>
+                        <th>Zabbix</th>
+                        <th>Nagios</th>
+                        <th>DataDog</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>开源/商业</strong></td>
+                        <td class="comparison-yes">开源</td>
+                        <td class="comparison-yes">开源</td>
+                        <td class="comparison-yes">开源</td>
+                        <td class="comparison-no">商业</td>
+                    </tr>
+                    <tr>
+                        <td><strong>数据模型</strong></td>
+                        <td class="comparison-yes">多维时序数据</td>
+                        <td class="comparison-partial">键值对</td>
+                        <td class="comparison-partial">状态检查</td>
+                        <td class="comparison-yes">多维时序数据</td>
+                    </tr>
+                    <tr>
+                        <td><strong>查询语言</strong></td>
+                        <td class="comparison-yes">PromQL</td>
+                        <td class="comparison-no">有限</td>
+                        <td class="comparison-no">无</td>
+                        <td class="comparison-yes">专有查询</td>
+                    </tr>
+                    <tr>
+                        <td><strong>服务发现</strong></td>
+                        <td class="comparison-yes">原生支持</td>
+                        <td class="comparison-partial">有限支持</td>
+                        <td class="comparison-no">不支持</td>
+                        <td class="comparison-yes">自动发现</td>
+                    </tr>
+                    <tr>
+                        <td><strong>可视化</strong></td>
+                        <td class="comparison-partial">需Grafana</td>
+                        <td class="comparison-yes">内置</td>
+                        <td class="comparison-partial">需插件</td>
+                        <td class="comparison-yes">内置</td>
+                    </tr>
+                    <tr>
+                        <td><strong>社区生态</strong></td>
+                        <td class="comparison-yes">强大</td>
+                        <td class="comparison-yes">强大</td>
+                        <td class="comparison-yes">强大</td>
+                        <td class="comparison-no">商业支持</td>
+                    </tr>
+                    <tr>
+                        <td><strong>成本</strong></td>
+                        <td class="comparison-yes">免费</td>
+                        <td class="comparison-yes">免费</td>
+                        <td class="comparison-yes">免费</td>
+                        <td class="comparison-no">昂贵</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>3. 监控指标设计规范</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制规范</button>
+                <pre><code># 监控指标命名规范
+# 格式: {__name__}{label1="value1",label2="value2",...}
+
+"""
+命名规范：
+1. 使用下划线分隔单词：http_requests_total
+2. 基本命名模式：<metric name>_<metric type>
+   - _total: 计数器累加值
+   - _count: 直方图/摘要的计数
+   - _sum: 直方图/摘要的总和
+   - _bucket: 直方图的分桶
+   - _info: 提供元信息
+3. 单位标准化：
+   - 时间: 秒（seconds）
+   - 内存: 字节（bytes）
+   - 磁盘: 字节（bytes）
+   - 网络: 比特/秒（bits/sec）
+
+标签设计原则：
+1. 标识性标签（必备）：
+   - instance: 实例标识（IP:Port）
+   - job: 任务/服务名称
+   - env: 环境（prod/staging/dev）
+
+2. 维度性标签（可选）：
+   - region: 地域（华北/华东）
+   - az: 可用区
+   - team: 负责团队
+   - version: 应用版本
+
+3. 避免的标签设计：
+   - 不要使用高基数标签（如用户ID）
+   - 避免标签值动态变化
+   - 标签数量不宜过多（一般5-10个）
+
+示例指标：
+# 系统指标
+node_cpu_seconds_total{mode="idle", instance="192.168.1.100:9100", job="node"}
+node_memory_MemFree_bytes{instance="192.168.1.100:9100", job="node"}
+
+# 应用指标
+http_requests_total{method="POST", endpoint="/api/users", status="200", job="user-service"}
+http_request_duration_seconds_bucket{method="GET", endpoint="/api/products", le="0.1"}
+
+# 业务指标
+orders_total{type="new", payment_method="alipay", env="production"}
+user_sessions_active{region="north", platform="mobile"}
+"""</code></pre>
+            </div>
+        </section>
+
+        <!-- Prometheus部署与配置 -->
+        <section class="content-section" id="prometheus">
+            <h2>三、Prometheus部署与配置</h2>
+            
+            <div class="info-tip">
+                <strong>🚀 Prometheus特点：</strong>
+                <p>1. <strong>多维数据模型</strong>：指标名称 + 键值对标签<br>
+                2. <strong>强大的查询语言</strong>：PromQL，灵活的数据查询和聚合<br>
+                3. <strong>不依赖分布式存储</strong>：单节点自包含<br>
+                4. <strong>HTTP拉取模式</strong>：主动从目标拉取指标<br>
+                5. <strong>多种服务发现</strong>：支持Kubernetes、Consul等</p>
+            </div>
+
+            <h3>1. Prometheus安装部署</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制脚本</button>
+                <pre><code>#!/bin/bash
+# install_prometheus.sh
+# Prometheus一键安装脚本
+
+PROMETHEUS_VERSION="2.45.0"
+PROMETHEUS_USER="prometheus"
+INSTALL_DIR="/opt/prometheus"
+DATA_DIR="/var/lib/prometheus"
+CONFIG_DIR="/etc/prometheus"
+
+# 创建用户和目录
+useradd --no-create-home --shell /bin/false $PROMETHEUS_USER
+mkdir -p $INSTALL_DIR $DATA_DIR $CONFIG_DIR
+chown -R $PROMETHEUS_USER:$PROMETHEUS_USER $INSTALL_DIR $DATA_DIR $CONFIG_DIR
+
+# 下载并安装Prometheus
+cd /tmp
+wget https://github.com/prometheus/prometheus/releases/download/v$PROMETHEUS_VERSION/prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
+tar xzf prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
+cd prometheus-$PROMETHEUS_VERSION.linux-amd64
+
+# 复制二进制文件
+cp prometheus promtool $INSTALL_DIR/
+chown $PROMETHEUS_USER:$PROMETHEUS_USER $INSTALL_DIR/{prometheus,promtool}
+chmod +x $INSTALL_DIR/{prometheus,promtool}
+
+# 复制配置文件
+cp prometheus.yml $CONFIG_DIR/
+chown -R $PROMETHEUS_USER:$PROMETHEUS_USER $CONFIG_DIR
+
+# 创建systemd服务文件
+cat > /etc/systemd/system/prometheus.service << EOF
+[Unit]
+Description=Prometheus Monitoring System
+Documentation=https://prometheus.io/docs/introduction/overview/
+After=network.target
+
+[Service]
+User=$PROMETHEUS_USER
+Group=$PROMETHEUS_USER
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=$INSTALL_DIR/prometheus \
+    --config.file=$CONFIG_DIR/prometheus.yml \
+    --storage.tsdb.path=$DATA_DIR \
+    --storage.tsdb.retention.time=30d \
+    --web.console.templates=$INSTALL_DIR/consoles \
+    --web.console.libraries=$INSTALL_DIR/console_libraries \
+    --web.listen-address=0.0.0.0:9090 \
+    --web.external-url=http://prometheus.example.com \
+    --web.enable-lifecycle \
+    --web.enable-admin-api
+
+ExecReload=/bin/kill -HUP \$MAINPID
+LimitNOFILE=65536
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 创建配置目录结构
+mkdir -p $CONFIG_DIR/{rules,rules.d,files_sd,targets}
+cat > $CONFIG_DIR/prometheus.yml << 'EOF'
+# 全局配置
+global:
+  scrape_interval: 15s      # 默认抓取间隔
+  evaluation_interval: 15s  # 规则评估间隔
+  external_labels:          # 外部标签
+    region: 'north'
+    env: 'production'
+
+# 告警规则文件
+rule_files:
+  - "rules/*.yml"
+  - "rules.d/*.yml"
+
+# 抓取配置
+scrape_configs:
+  # 监控Prometheus自身
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    labels:
+      service: 'monitoring'
+
+  # 监控所有Node Exporter
+  - job_name: 'node'
+    scrape_interval: 30s
+    file_sd_configs:
+      - files:
+        - 'targets/node_*.yml'
+        refresh_interval: 5m
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - source_labels: [__meta_dns_name]
+        target_label: hostname
+
+  # 监控所有MySQL
+  - job_name: 'mysql'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['mysql-1:9104', 'mysql-2:9104']
+    labels:
+      database: 'mysql'
+
+  # 监控所有Nginx
+  - job_name: 'nginx'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['nginx-1:9113', 'nginx-2:9113']
+    labels:
+      service: 'web'
+
+  # 通过Consul服务发现
+  - job_name: 'consul-services'
+    consul_sd_configs:
+      - server: 'consul.example.com:8500'
+        services: []
+    relabel_configs:
+      - source_labels: [__meta_consul_service]
+        target_label: job
+      - source_labels: [__meta_consul_tags]
+        regex: ',(production|staging|dev),'
+        target_label: env
+        replacement: '$1'
+
+# 远程读写配置（可选）
+remote_write:
+  - url: "http://thanos-receive:19291/api/v1/receive"
+    queue_config:
+      max_samples_per_send: 1000
+      capacity: 5000
+      max_shards: 200
+
+remote_read:
+  - url: "http://thanos-query:10902/api/v1/read"
+    read_recent: true
+EOF
+
+# 创建示例target文件
+cat > $CONFIG_DIR/targets/node_servers.yml << 'EOF'
+- targets:
+  - '192.168.1.100:9100'
+  - '192.168.1.101:9100'
+  - '192.168.1.102:9100'
+  labels:
+    datacenter: 'dc1'
+    rack: 'rack-a'
+EOF
+
+# 创建告警规则文件
+cat > $CONFIG_DIR/rules/node_alerts.yml << 'EOF'
+groups:
+  - name: node_alerts
+    interval: 30s
+    rules:
+      - alert: HighCpuUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "高CPU使用率 (实例 {{ $labels.instance }})"
+          description: "CPU使用率超过80%已经5分钟。当前值: {{ $value }}%"
+          runbook: "https://runbook.example.com/high-cpu"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Buffers_bytes - node_memory_Cached_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "高内存使用率 (实例 {{ $labels.instance }})"
+          description: "内存使用率超过85%已经5分钟。当前值: {{ $value }}%"
+
+      - alert: DiskSpaceCritical
+        expr: (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "磁盘空间严重不足 (实例 {{ $labels.instance }})"
+          description: "根分区使用率超过90%已经2分钟。当前值: {{ $value }}%"
+          runbook: "https://runbook.example.com/disk-space"
+
+      - alert: NodeDown
+        expr: up{job="node"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "节点宕机 (实例 {{ $labels.instance }})"
+          description: "节点 {{ $labels.instance }} 已经宕机超过1分钟"
+EOF
+
+# 设置权限
+chown -R $PROMETHEUS_USER:$PROMETHEUS_USER $CONFIG_DIR
+chmod -R 644 $CONFIG_DIR/*.yml
+chmod 755 $CONFIG_DIR $CONFIG_DIR/{rules,rules.d,files_sd,targets}
+
+# 启动服务
+systemctl daemon-reload
+systemctl enable prometheus
+systemctl start prometheus
+
+# 检查状态
+sleep 3
+systemctl status prometheus --no-pager
+
+echo "Prometheus安装完成！"
+echo "访问地址: http://$(hostname -I | awk '{print $1}'):9090"
+echo "数据目录: $DATA_DIR"
+echo "配置目录: $CONFIG_DIR"</code></pre>
+            </div>
+
+            <h3>2. Prometheus配置详解</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制配置</button>
+                <pre><code># Prometheus高级配置示例
+
+# 1. 远程存储配置（VictoriaMetrics）
+remote_write:
+  - url: "http://victoria-metrics:8428/api/v1/write"
+    write_relabel_configs:
+      - action: keep
+        regex: "node.*|prometheus.*"
+        source_labels: [__name__]
+    queue_config:
+      max_shards: 10
+      min_shards: 2
+      max_samples_per_send: 500
+      capacity: 10000
+      batch_send_deadline: "5s"
+      min_backoff: "100ms"
+      max_backoff: "5s"
+
+# 2. 服务发现配置（Kubernetes）
+scrape_configs:
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      # 只抓取有注解 prometheus.io/scrape: "true" 的pod
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      
+      # 从注解中获取抓取路径
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      
+      # 从注解中获取抓取端口
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      
+      # 添加标准标签
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      
+      # 设置实例名为 pod名:端口
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      
+      # 设置命名空间标签
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      
+      # 设置节点标签
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+
+# 3. 静态配置示例
+scrape_configs:
+  - job_name: 'static-targets'
+    static_configs:
+      - targets:
+        - 'app-1.example.com:8080'
+        - 'app-2.example.com:8080'
+        - 'app-3.example.com:8080'
+        labels:
+          environment: 'production'
+          region: 'us-east-1'
+          application: 'user-service'
+
+# 4. 文件服务发现
+scrape_configs:
+  - job_name: 'file-sd'
+    file_sd_configs:
+      - files:
+        - '/etc/prometheus/targets/*.json'
+        - '/etc/prometheus/targets/*.yml'
+        refresh_interval: 5m
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '(.*):(\d+)'
+        replacement: '${1}'
+        target_label: host
+      - source_labels: [__address__]
+        regex: '(.*):(\d+)'
+        replacement: '${2}'
+        target_label: port
+
+# 5. 标签重写规则
+scrape_configs:
+  - job_name: 'example'
+    static_configs:
+      - targets: ['example.com:80']
+    metric_relabel_configs:
+      # 删除不需要的指标
+      - action: drop
+        regex: 'go_.*'
+        source_labels: [__name__]
+      
+      # 重命名指标
+      - source_labels: [__name__]
+        regex: 'http_requests_(\w+)'
+        replacement: 'http_${1}'
+        target_label: __name__
+      
+      # 添加标签
+      - source_labels: [instance]
+        regex: '([^:]+):\d+'
+        replacement: '${1}'
+        target_label: hostname
+      
+      # 替换标签值
+      - source_labels: [status_code]
+        regex: '5..'
+        replacement: 'server_error'
+        target_label: status_group
+
+# 6. 告警规则分组
+groups:
+  - name: infrastructure_alerts
+    interval: 30s
+    rules:
+      # 系统级别告警
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+          domain: infrastructure
+        annotations:
+          summary: "实例 {{ $labels.instance }} 宕机"
+          description: "{{ $labels.instance }} 已经5分钟无法访问"
+          runbook: "/runbooks/instance-down.md"
+      
+      # 资源级别告警
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 10m
+        labels:
+          severity: warning
+          domain: infrastructure
+        annotations:
+          summary: "内存使用率过高 {{ $labels.instance }}"
+          description: "内存使用率超过90%已经10分钟"
+          runbook: "/runbooks/high-memory.md"
+
+  - name: application_alerts
+    interval: 15s
+    rules:
+      # 应用级别告警
+      - alert: HighRequestLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+          domain: application
+        annotations:
+          summary: "高请求延迟 {{ $labels.service }}"
+          description: "95%的请求延迟超过0.5秒"
+          runbook: "/runbooks/high-latency.md"
+      
+      # 业务级别告警
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+          domain: business
+        annotations:
+          summary: "高错误率 {{ $labels.service }}"
+          description: "错误率超过5%已经5分钟"
+          runbook: "/runbooks/high-error-rate.md"</code></pre>
+            </div>
+        </section>
+
+        <!-- 各种Exporter部署 -->
+        <section class="content-section" id="exporters">
+            <h2>四、各种Exporter部署</h2>
+            
+            <div class="info-tip">
+                <strong>📊 Exporter生态系统：</strong>
+                <p>Prometheus拥有丰富的Exporter生态系统，可以监控几乎所有常见的服务和系统。官方和社区维护了数百个Exporter，覆盖了基础设施、中间件、数据库、应用程序等各个层面。</p>
+            </div>
+
+            <h3>1. Node Exporter（服务器监控）</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制脚本</button>
+                <pre><code>#!/bin/bash
+# install_node_exporter.sh
+# Node Exporter一键安装脚本
+
+NODE_EXPORTER_VERSION="1.6.0"
+NODE_EXPORTER_USER="node_exporter"
+INSTALL_DIR="/opt/node_exporter"
+
+# 创建用户
+useradd --no-create-home --shell /bin/false $NODE_EXPORTER_USER
+
+# 下载并安装
+cd /tmp
+wget https://github.com/prometheus/node_exporter/releases/download/v$NODE_EXPORTER_VERSION/node_exporter-$NODE_EXPORTER_VERSION.linux-amd64.tar.gz
+tar xzf node_exporter-$NODE_EXPORTER_VERSION.linux-amd64.tar.gz
+cd node_exporter-$NODE_EXPORTER_VERSION.linux-amd64
+
+# 复制二进制文件
+cp node_exporter $INSTALL_DIR/
+chown $NODE_EXPORTER_USER:$NODE_EXPORTER_USER $INSTALL_DIR/node_exporter
+chmod +x $INSTALL_DIR/node_exporter
+
+# 创建systemd服务
+cat > /etc/systemd/system/node_exporter.service << EOF
+[Unit]
+Description=Node Exporter
+Documentation=https://github.com/prometheus/node_exporter
+After=network.target
+
+[Service]
+User=$NODE_EXPORTER_USER
+Group=$NODE_EXPORTER_USER
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=$INSTALL_DIR/node_exporter \
+  --web.listen-address=":9100" \
+  --collector.systemd \
+  --collector.systemd.unit-whitelist="(docker|ssh|nginx|mysql).service" \
+  --collector.processes \
+  --collector.tcpstat \
+  --collector.netdev \
+  --collector.netstat \
+  --collector.diskstats \
+  --collector.filesystem \
+  --collector.meminfo \
+  --collector.loadavg \
+  --collector.stat \
+  --collector.vmstat \
+  --collector.textfile.directory=/var/lib/node_exporter/textfile_collector \
+  --log.level="info"
+
+ExecReload=/bin/kill -HUP \$MAINPID
+LimitNOFILE=65536
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 创建文本文件收集器目录
+mkdir -p /var/lib/node_exporter/textfile_collector
+chown -R $NODE_EXPORTER_USER:$NODE_EXPORTER_USER /var/lib/node_exporter
+
+# 创建自定义指标收集脚本
+cat > /usr/local/bin/custom_node_metrics.sh << 'EOF'
+#!/bin/bash
+# 自定义节点指标收集脚本
+
+OUTPUT_FILE="/var/lib/node_exporter/textfile_collector/custom_metrics.prom"
+
+# 1. 系统更新时间
+echo '# HELP node_system_uptime_seconds System uptime in seconds' > $OUTPUT_FILE
+echo '# TYPE node_system_uptime_seconds gauge' >> $OUTPUT_FILE
+echo "node_system_uptime_seconds $(awk '{print $1}' /proc/uptime)" >> $OUTPUT_FILE
+
+# 2. 登录用户数
+LOGIN_USERS=$(who | wc -l)
+echo '# HELP node_login_users Number of logged in users' >> $OUTPUT_FILE
+echo '# TYPE node_login_users gauge' >> $OUTPUT_FILE
+echo "node_login_users $LOGIN_USERS" >> $OUTPUT_FILE
+
+# 3. 僵尸进程数
+ZOMBIE_PROCESSES=$(ps aux | awk '{print $8}' | grep -c Z)
+echo '# HELP node_zombie_processes Number of zombie processes' >> $OUTPUT_FILE
+echo '# TYPE node_zombie_processes gauge' >> $OUTPUT_FILE
+echo "node_zombie_processes $ZOMBIE_PROCESSES" >> $OUTPUT_FILE
+
+# 4. 文件句柄使用率
+FILE_HANDLES=$(cat /proc/sys/fs/file-nr | awk '{print $1}')
+FILE_HANDLES_MAX=$(cat /proc/sys/fs/file-max)
+FILE_HANDLES_PERCENT=$(echo "scale=2; $FILE_HANDLES * 100 / $FILE_HANDLES_MAX" | bc)
+echo '# HELP node_file_handles_used File handles used' >> $OUTPUT_FILE
+echo '# TYPE node_file_handles_used gauge' >> $OUTPUT_FILE
+echo "node_file_handles_used $FILE_HANDLES" >> $OUTPUT_FILE
+
+echo '# HELP node_file_handles_max Maximum file handles' >> $OUTPUT_FILE
+echo '# TYPE node_file_handles_max gauge' >> $OUTPUT_FILE
+echo "node_file_handles_max $FILE_HANDLES_MAX" >> $OUTPUT_FILE
+
+echo '# HELP node_file_handles_percent File handles usage percent' >> $OUTPUT_FILE
+echo '# TYPE node_file_handles_percent gauge' >> $OUTPUT_FILE
+echo "node_file_handles_percent $FILE_HANDLES_PERCENT" >> $OUTPUT_FILE
+
+# 5. 系统负载（15分钟）
+LOAD_15=$(awk '{print $3}' /proc/loadavg)
+echo '# HELP node_load15 System load average for 15 minutes' >> $OUTPUT_FILE
+echo '# TYPE node_load15 gauge' >> $OUTPUT_FILE
+echo "node_load15 $LOAD_15" >> $OUTPUT_FILE
+
+# 6. 磁盘inode使用率
+DISK_INODES=$(df -i / | awk 'NR==2 {print $5}' | sed 's/%//')
+echo '# HELP node_disk_inode_usage_percent Disk inode usage percent for root' >> $OUTPUT_FILE
+echo '# TYPE node_disk_inode_usage_percent gauge' >> $OUTPUT_FILE
+echo "node_disk_inode_usage_percent $DISK_INODES" >> $OUTPUT_FILE
+
+# 7. 网络连接统计
+TCP_ESTABLISHED=$(ss -s | awk '/^TCP:/ {print $4}')
+echo '# HELP node_network_tcp_established Established TCP connections' >> $OUTPUT_FILE
+echo '# TYPE node_network_tcp_established gauge' >> $OUTPUT_FILE
+echo "node_network_tcp_established $TCP_ESTABLISHED" >> $OUTPUT_FILE
+
+# 8. 系统时间同步状态
+NTP_SYNC=0
+if chronyc tracking 2>/dev/null | grep -q "Leap status.*Normal"; then
+    NTP_SYNC=1
+elif ntpq -p 2>/dev/null | grep -q "^\*"; then
+    NTP_SYNC=1
+fi
+echo '# HELP node_ntp_synchronized NTP synchronization status (1=synchronized, 0=not synchronized)' >> $OUTPUT_FILE
+echo '# TYPE node_ntp_synchronized gauge' >> $OUTPUT_FILE
+echo "node_ntp_synchronized $NTP_SYNC" >> $OUTPUT_FILE
+
+# 设置权限
+chown $NODE_EXPORTER_USER:$NODE_EXPORTER_USER $OUTPUT_FILE
+chmod 644 $OUTPUT_FILE
+EOF
+
+chmod +x /usr/local/bin/custom_node_metrics.sh
+
+# 创建定时任务
+echo "*/30 * * * * root /usr/local/bin/custom_node_metrics.sh" > /etc/cron.d/node_exporter_custom_metrics
+
+# 启动服务
+systemctl daemon-reload
+systemctl enable node_exporter
+systemctl start node_exporter
+
+# 检查状态
+sleep 2
+systemctl status node_exporter --no-pager
+
+echo "Node Exporter安装完成！"
+echo "访问地址: http://$(hostname -I | awk '{print $1}'):9100"
+echo "Metrics地址: http://$(hostname -I | awk '{print $1}'):9100/metrics"</code></pre>
+            </div>
+
+            <h3>2. MySQL Exporter配置</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制配置</button>
+                <pre><code>#!/bin/bash
+# install_mysql_exporter.sh
+# MySQL Exporter安装配置
+
+MYSQL_EXPORTER_VERSION="0.15.0"
+MYSQL_EXPORTER_USER="mysql_exporter"
+INSTALL_DIR="/opt/mysql_exporter"
+
+# 创建用户
+useradd --no-create-home --shell /bin/false $MYSQL_EXPORTER_USER
+
+# 下载并安装
+cd /tmp
+wget https://github.com/prometheus/mysqld_exporter/releases/download/v$MYSQL_EXPORTER_VERSION/mysqld_exporter-$MYSQL_EXPORTER_VERSION.linux-amd64.tar.gz
+tar xzf mysqld_exporter-$MYSQL_EXPORTER_VERSION.linux-amd64.tar.gz
+cd mysqld_exporter-$MYSQL_EXPORTER_VERSION.linux-amd64
+
+# 复制二进制文件
+cp mysqld_exporter $INSTALL_DIR/
+chown $MYSQL_EXPORTER_USER:$MYSQL_EXPORTER_USER $INSTALL_DIR/mysqld_exporter
+chmod +x $INSTALL_DIR/mysqld_exporter
+
+# 在MySQL中创建监控用户
+mysql -u root -p << 'EOF'
+-- 创建监控用户
+CREATE USER 'exporter'@'localhost' IDENTIFIED BY 'ExporterPassword123!' WITH MAX_USER_CONNECTIONS 3;
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'localhost';
+GRANT SELECT ON performance_schema.* TO 'exporter'@'localhost';
+
+-- 验证权限
+SHOW GRANTS FOR 'exporter'@'localhost';
+EOF
+
+# 创建配置文件
+cat > /etc/mysql_exporter.cnf << EOF
+[client]
+user=exporter
+password=ExporterPassword123!
+host=localhost
+port=3306
+EOF
+
+chown $MYSQL_EXPORTER_USER:$MYSQL_EXPORTER_USER /etc/mysql_exporter.cnf
+chmod 600 /etc/mysql_exporter.cnf
+
+# 创建systemd服务
+cat > /etc/systemd/system/mysql_exporter.service << EOF
+[Unit]
+Description=MySQL Exporter
+Documentation=https://github.com/prometheus/mysqld_exporter
+After=network.target mysql.service
+
+[Service]
+User=$MYSQL_EXPORTER_USER
+Group=$MYSQL_EXPORTER_USER
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=$INSTALL_DIR/mysqld_exporter \
+  --web.listen-address=":9104" \
+  --config.my-cnf=/etc/mysql_exporter.cnf \
+  --collect.global_status \
+  --collect.global_variables \
+  --collect.info_schema.innodb_metrics \
+  --collect.info_schema.processlist \
+  --collect.info_schema.tables \
+  --collect.info_schema.tablestats \
+  --collect.info_schema.userstats \
+  --collect.perf_schema.eventswaits \
+  --collect.perf_schema.file_events \
+  --collect.perf_schema.indexiowaits \
+  --collect.perf_schema.tableiowaits \
+  --collect.slave_status \
+  --collect.auto_increment.columns \
+  --collect.binlog_size \
+  --collect.info_schema.query_response_time \
+  --collect.engine_innodb_status \
+  --log.level="info"
+
+ExecReload=/bin/kill -HUP \$MAINPID
+LimitNOFILE=65536
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 启动服务
+systemctl daemon-reload
+systemctl enable mysql_exporter
+systemctl start mysql_exporter
+
+# 检查状态
+sleep 2
+systemctl status mysql_exporter --no-pager
+
+echo "MySQL Exporter安装完成！"
+echo "访问地址: http://$(hostname -I | awk '{print $1}'):9104"
+echo "Metrics地址: http://$(hostname -I | awk '{print $1}'):9104/metrics"
+
+# 关键MySQL监控指标说明
+cat << 'EOF'
+
+=== 关键MySQL监控指标 ===
+
+1. 连接相关:
+   mysql_global_status_threads_connected      # 当前连接数
+   mysql_global_status_max_used_connections   # 历史最大连接数
+   mysql_global_variables_max_connections     # 最大连接数限制
+
+2. 查询性能:
+   mysql_global_status_questions              # 总查询数
+   mysql_global_status_slow_queries           # 慢查询数
+   rate(mysql_global_status_questions[1m])    # QPS
+
+3. InnoDB状态:
+   mysql_global_status_innodb_buffer_pool_pages_total     # 缓冲池总页数
+   mysql_global_status_innodb_buffer_pool_pages_free      # 缓冲池空闲页数
+   mysql_global_status_innodb_row_lock_time_avg           # 平均行锁等待时间
+
+4. 复制状态:
+   mysql_slave_status_slave_io_running        # IO线程状态
+   mysql_slave_status_slave_sql_running       # SQL线程状态
+   mysql_slave_status_seconds_behind_master   # 复制延迟秒数
+
+5. 表状态:
+   mysql_info_schema_table_size_bytes         # 表大小
+   mysql_info_schema_table_rows               # 表行数
+
+=== 常用告警规则 ===
+
+# 连接数过高
+- alert: MySQL连接数过高
+  expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections > 0.8
+  for: 5m
+
+# 慢查询过多
+- alert: MySQL慢查询过多
+  expr: rate(mysql_global_status_slow_queries[5m]) > 10
+  for: 2m
+
+# 复制延迟
+- alert: MySQL复制延迟
+  expr: mysql_slave_status_seconds_behind_master > 30
+  for: 5m
+
+# InnoDB缓冲池命中率低
+- alert: InnoDB缓冲池命中率低
+  expr: (1 - (mysql_global_status_innodb_buffer_pool_reads / mysql_global_status_innodb_buffer_pool_read_requests)) * 100 < 90
+  for: 10m
+EOF</code></pre>
+            </div>
+
+            <h3>3. 其他常用Exporter</h3>
+            <div class="monitoring-cards">
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-code"></i> Blackbox Exporter</h4>
+                    <p>网络探测，监控HTTP、HTTPS、DNS、TCP、ICMP等服务可用性。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-database"></i> PostgreSQL Exporter</h4>
+                    <p>PostgreSQL数据库监控，收集连接数、查询性能、锁等信息。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-cloud"></i> Cloud Exporter</h4>
+                    <p>AWS、Azure、GCP云服务监控，收集云资源使用情况和成本。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-bolt"></i> JMX Exporter</h4>
+                    <p>Java应用监控，通过JMX收集JVM性能指标和应用业务指标。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-exchange-alt"></i> HAProxy Exporter</h4>
+                    <p>负载均衡器监控，收集连接数、请求率、后端服务器状态等。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-cube"></i> cAdvisor</h4>
+                    <p>容器监控，收集Docker容器资源使用情况和性能指标。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grafana可视化与仪表板 -->
+        <section class="content-section" id="grafana">
+            <h2>五、Grafana可视化与仪表板</h2>
+            
+            <div class="success-tip">
+                <strong>📈 Grafana优势：</strong>
+                <p>1. <strong>丰富的可视化选项</strong>：图表、表格、仪表、热图、地理地图等<br>
+                2. <strong>强大的数据源支持</strong>：Prometheus、MySQL、PostgreSQL、Elasticsearch等<br>
+                3. <strong>灵活的告警功能</strong>：可视化告警配置，多种通知渠道<br>
+                4. <strong>团队协作</strong>：文件夹权限、共享仪表板、版本管理</p>
+            </div>
+
+            <h3>1. Grafana安装与配置</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制脚本</button>
+                <pre><code>#!/bin/bash
+# install_grafana.sh
+# Grafana一键安装脚本
+
+GRAFANA_VERSION="10.0.3"
+GRAFANA_USER="grafana"
+INSTALL_DIR="/opt/grafana"
+DATA_DIR="/var/lib/grafana"
+CONFIG_DIR="/etc/grafana"
+LOG_DIR="/var/log/grafana"
+
+# 下载Grafana
+cd /tmp
+wget https://dl.grafana.com/oss/release/grafana-$GRAFANA_VERSION.linux-amd64.tar.gz
+tar xzf grafana-$GRAFANA_VERSION.linux-amd64.tar.gz
+mv grafana-$GRAFANA_VERSION $INSTALL_DIR
+
+# 创建用户和目录
+useradd --no-create-home --shell /bin/false $GRAFANA_USER
+mkdir -p $DATA_DIR $CONFIG_DIR $LOG_DIR
+chown -R $GRAFANA_USER:$GRAFANA_USER $INSTALL_DIR $DATA_DIR $CONFIG_DIR $LOG_DIR
+
+# 创建systemd服务
+cat > /etc/systemd/system/grafana.service << EOF
+[Unit]
+Description=Grafana
+Documentation=https://grafana.com/docs/
+After=network.target
+
+[Service]
+User=$GRAFANA_USER
+Group=$GRAFANA_USER
+Type=simple
+Restart=always
+RestartSec=5
+WorkingDirectory=$INSTALL_DIR
+EnvironmentFile=-$CONFIG_DIR/grafana.conf
+ExecStart=$INSTALL_DIR/bin/grafana-server \\
+  --config=$CONFIG_DIR/grafana.ini \\
+  --homepath=$INSTALL_DIR \\
+  --packaging=docker \\
+  cfg:default.paths.logs=$LOG_DIR \\
+  cfg:default.paths.data=$DATA_DIR \\
+  cfg:default.paths.plugins=$INSTALL_DIR/plugins \\
+  cfg:default.paths.provisioning=$CONFIG_DIR/provisioning
+
+ExecReload=/bin/kill -HUP \$MAINPID
+LimitNOFILE=65536
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 创建配置文件
+cat > $CONFIG_DIR/grafana.ini << 'EOF'
+[server]
+# 监听地址和端口
+http_addr = 0.0.0.0
+http_port = 3000
+domain = grafana.example.com
+root_url = %(protocol)s://%(domain)s:%(http_port)s/
+serve_from_sub_path = false
+
+# 日志配置
+[log]
+mode = console file
+level = info
+format = console
+
+# 数据库配置（默认使用SQLite）
+[database]
+type = sqlite3
+path = grafana.db
+max_idle_conn = 2
+max_open_conn = 0
+conn_max_lifetime = 14400
+
+# 安全配置
+[security]
+admin_user = admin
+admin_password = admin
+secret_key = SW2YcwTIb9zpOOhoPsMm
+disable_gravatar = false
+data_source_proxy_whitelist = 
+
+# 用户配置
+[auth]
+disable_login_form = false
+disable_signout_menu = false
+
+# 匿名访问配置
+[auth.anonymous]
+enabled = false
+org_name = Main Org.
+org_role = Viewer
+
+# 基础认证配置
+[auth.basic]
+enabled = true
+
+# 邮件配置（告警通知）
+[smtp]
+enabled = true
+host = smtp.example.com:465
+user = alert@example.com
+password = YourPassword
+from_address = alert@example.com
+from_name = Grafana Alert
+
+# 用户配置
+[users]
+allow_sign_up = false
+auto_assign_org = true
+auto_assign_org_role = Viewer
+
+# 会话配置
+[session]
+provider = file
+provider_config = sessions
+cookie_secure = false
+session_life_time = 86400
+
+# 分析配置
+[analytics]
+reporting_enabled = true
+check_for_updates = true
+
+# 路径配置
+[paths]
+data = /var/lib/grafana
+logs = /var/log/grafana
+plugins = /opt/grafana/plugins
+provisioning = /etc/grafana/provisioning
+
+# 快照配置
+[snapshots]
+external_enabled = true
+external_snapshot_url = https://snapshots.example.com
+external_snapshot_name = Grafana Snapshots
+
+# 指标配置（Grafana自身监控）
+[metrics]
+enabled = true
+interval_seconds = 10
+EOF
+
+# 创建数据源配置
+mkdir -p $CONFIG_DIR/provisioning/datasources
+cat > $CONFIG_DIR/provisioning/datasources/prometheus.yml << 'EOF'
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://localhost:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: 2.45.0
+      cacheLevel: 'High'
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: tempo
+    secureJsonData:
+      tlsAuth: false
+      tlsAuthWithCACert: false
+
+  - name: Alertmanager
+    type: alertmanager
+    access: proxy
+    url: http://localhost:9093
+    editable: true
+    jsonData:
+      implementation: prometheus
+      handleGrafanaManagedAlerts: true
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://localhost:3100
+    editable: true
+    jsonData:
+      maxLines: 1000
+
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://localhost:3200
+    editable: true
+    jsonData:
+      nodeGraph:
+        enabled: true
+      tracesToLogs:
+        datasourceUid: 'loki'
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        tags: ['job', 'instance', 'pod', 'namespace']
+        filterByTraceID: true
+        filterBySpanID: true
+EOF
+
+# 创建仪表板配置
+mkdir -p $CONFIG_DIR/provisioning/dashboards
+cat > $CONFIG_DIR/provisioning/dashboards/dashboards.yml << 'EOF'
+apiVersion: 1
+
+providers:
+  - name: 'default'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/dashboards
+EOF
+
+# 创建示例仪表板目录
+mkdir -p /etc/grafana/dashboards
+
+# 启动服务
+systemctl daemon-reload
+systemctl enable grafana
+systemctl start grafana
+
+# 检查状态
+sleep 5
+systemctl status grafana --no-pager
+
+echo "Grafana安装完成！"
+echo "访问地址: http://$(hostname -I | awk '{print $1}'):3000"
+echo "默认用户名: admin"
+echo "默认密码: admin"
+echo ""
+echo "请登录后立即修改管理员密码！"</code></pre>
+            </div>
+
+            <h3>2. Grafana仪表板设计</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">查看JSON</button>
+                <pre><code>{
+  "dashboard": {
+    "title": "Node Exporter Full",
+    "tags": ["templated", "node-exporter"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "datasource": "Prometheus",
+        "description": "总体CPU使用率",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "id": 2,
+        "options": {
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true
+        },
+        "pluginVersion": "9.3.2",
+        "targets": [
+          {
+            "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+            "interval": "",
+            "legendFormat": "{{instance}}",
+            "refId": "A"
+          }
+        ],
+        "title": "CPU Usage",
+        "type": "gauge"
+      },
+      {
+        "datasource": "Prometheus",
+        "description": "内存使用情况",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "normal"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "bytes"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Used"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "red",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Cached"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "yellow",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "id": 3,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "expr": "node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Buffers_bytes - node_memory_Cached_bytes",
+            "interval": "",
+            "legendFormat": "Used",
+            "refId": "A"
+          },
+          {
+            "expr": "node_memory_Buffers_bytes",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "Buffers",
+            "refId": "B"
+          },
+          {
+            "expr": "node_memory_Cached_bytes",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "Cached",
+            "refId": "C"
+          }
+        ],
+        "title": "Memory Usage",
+        "type": "timeseries"
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ],
+      "time_options": [
+        "5m",
+        "15m",
+        "1h",
+        "6h",
+        "12h",
+        "24h",
+        "2d",
+        "7d",
+        "30d"
+      ]
+    },
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          "datasource": "Prometheus",
+          "definition": "label_values(node_cpu_seconds_total, instance)",
+          "hide": 0,
+          "includeAll": true,
+          "multi": true,
+          "name": "instance",
+          "options": [],
+          "query": {
+            "query": "label_values(node_cpu_seconds_total, instance)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          "hide": 0,
+          "includeAll": false,
+          "label": "Interval",
+          "multi": false,
+          "name": "interval",
+          "options": [
+            {
+              "selected": true,
+              "text": "1m",
+              "value": "1m"
+            },
+            {
+              "selected": false,
+              "text": "5m",
+              "value": "5m"
+            },
+            {
+              "selected": false,
+              "text": "10m",
+              "value": "10m"
+            },
+            {
+              "selected": false,
+              "text": "30m",
+              "value": "30m"
+            },
+            {
+              "selected": false,
+              "text": "1h",
+              "value": "1h"
+            },
+            {
+              "selected": false,
+              "text": "6h",
+              "value": "6h"
+            }
+          ],
+          "query": "1m,5m,10m,30m,1h,6h",
+          "queryValue": "",
+          "refresh": 2,
+          "skipUrlSync": false,
+          "type": "interval"
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "refresh": "10s",
+    "schemaVersion": 37,
+    "version": 1,
+    "uid": "node-exporter-full"
+  },
+  "folderUid": "general",
+  "message": "Updated dashboard",
+  "overwrite": true
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- 告警规则与通知配置 -->
+        <section class="content-section" id="alerting">
+            <h2>六、告警规则与通知配置</h2>
+            
+            <div class="danger-tip">
+                <strong>🚨 告警设计原则：</strong>
+                <p>1. <strong>分级分类</strong>：根据严重程度划分告警级别（紧急、重要、警告）<br>
+                2. <strong>静默降噪</strong>：避免告警风暴，合理设置静默规则<br>
+                3. <strong>明确可操作</strong>：告警信息应包含具体问题和解决建议<br>
+                4. <strong>多渠道通知</strong>：重要告警应通过多种渠道通知<br>
+                5. <strong>闭环管理</strong>：告警应关联事件、处理、复盘全过程</p>
+            </div>
+
+            <h3>1. Alertmanager配置</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制配置</button>
+                <pre><code># Alertmanager配置 (alertmanager.yml)
+
+global:
+  # SMTP配置
+  smtp_smarthost: 'smtp.example.com:587'
+  smtp_from: 'alertmanager@example.com'
+  smtp_auth_username: 'alertmanager@example.com'
+  smtp_auth_password: 'YourPassword'
+  smtp_require_tls: true
+  
+  # Slack配置
+  slack_api_url: 'https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX'
+  
+  # 微信企业号配置
+  wechat_api_url: 'https://qyapi.weixin.qq.com/cgi-bin/'
+  wechat_api_secret: 'your-wechat-secret'
+  wechat_api_corp_id: 'your-corp-id'
+
+# 路由配置 - 定义告警如何路由到接收器
+route:
+  # 默认路由
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default-receiver'
+  
+  # 子路由
+  routes:
+    # 按严重程度路由
+    - match:
+        severity: critical
+      receiver: 'critical-receiver'
+      group_wait: 5s
+      group_interval: 5s
+      repeat_interval: 5m
+      continue: true
+    
+    # 按团队路由
+    - match_re:
+        team: ^(infra|platform).*
+      receiver: 'infra-team'
+      continue: false
+    
+    - match_re:
+        team: ^(dev|app).*
+      receiver: 'dev-team'
+      continue: false
+    
+    # 按服务路由
+    - match:
+        service: mysql
+      receiver: 'dba-team'
+      continue: false
+    
+    - match:
+        service: nginx
+      receiver: 'web-team'
+      continue: false
+    
+    # 工作时间路由
+    - receiver: 'work-hours-receiver'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      continue: true
+      matchers:
+        - name: time_range
+          value: '09:00-18:00'
+        - name: weekday
+          value: '1-5'  # 周一到周五
+
+# 告警抑制规则 - 避免重复告警
+inhibit_rules:
+  # 当有节点宕机告警时，抑制该节点上的所有其他告警
+  - source_match:
+      alertname: NodeDown
+      severity: critical
+    target_match:
+      severity: critical
+    equal: ['instance', 'cluster']
+  
+  # 当有集群级别故障时，抑制所有节点级别告警
+  - source_match:
+      alertname: ClusterDown
+    target_match_re:
+      alertname: 'NodeDown|HighCpuUsage|HighMemoryUsage'
+    equal: ['cluster']
+  
+  # 网络分区告警抑制
+  - source_match:
+      alertname: NetworkPartition
+    target_match:
+      severity: warning
+    equal: ['zone']
+
+# 静默配置 - 临时关闭特定告警
+# 可以通过Web UI或API配置
+
+# 接收器配置 - 定义告警发送方式
+receivers:
+  # 默认接收器
+  - name: 'default-receiver'
+    email_configs:
+      - to: 'alerts@example.com'
+        send_resolved: true
+        headers:
+          Subject: '[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>{{ .GroupLabels.alertname }}</h2>
+          <p><strong>状态</strong>: {{ .Status | toUpper }}</p>
+          <p><strong>开始时间</strong>: {{ (index .Alerts 0).StartsAt }}</p>
+          <p><strong>结束时间</strong>: {{ (index .Alerts 0).EndsAt }}</p>
+          <p><strong>摘要</strong>: {{ .CommonAnnotations.summary }}</p>
+          <p><strong>描述</strong>: {{ .CommonAnnotations.description }}</p>
+          <hr>
+          <h3>告警详情</h3>
+          <table border="1">
+            <tr>
+              <th>标签</th>
+              <th>值</th>
+            </tr>
+            {{ range .GroupLabels.SortedPairs }}
+            <tr>
+              <td>{{ .Name }}</td>
+              <td>{{ .Value }}</td>
+            </tr>
+            {{ end }}
+          </table>
+          <hr>
+          <p><strong>运行手册</strong>: <a href="{{ .CommonAnnotations.runbook }}">{{ .CommonAnnotations.runbook }}</a></p>
+    
+    webhook_configs:
+      - url: 'http://alert-webhook.example.com/alerts'
+        send_resolved: true
+  
+  # 紧急告警接收器
+  - name: 'critical-receiver'
+    email_configs:
+      - to: 'oncall@example.com, manager@example.com'
+        send_resolved: true
+    
+    # Slack通知
+    slack_configs:
+      - channel: '#alerts-critical'
+        title: '[CRITICAL] {{ .GroupLabels.alertname }}'
+        text: |-
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Labels:*
+          {{ range .Labels.SortedPairs }} • {{ .Name }}: {{ .Value }}
+          {{ end }}
+          {{ end }}
+        send_resolved: true
+        color: 'danger'  # 红色
+    
+    # 微信通知
+    wechat_configs:
+      - agent_id: '1000002'
+        to_user: '@all'
+        to_party: '2'
+        message: '{{ template "wechat.default.message" . }}'
+        send_resolved: true
+    
+    # 电话告警（通过第三方服务）
+    webhook_configs:
+      - url: 'http://phone-alert-service.example.com/call'
+        send_resolved: false
+  
+  # 基础设施团队
+  - name: 'infra-team'
+    email_configs:
+      - to: 'infra-team@example.com'
+    slack_configs:
+      - channel: '#infra-alerts'
+  
+  # 开发团队
+  - name: 'dev-team'
+    email_configs:
+      - to: 'dev-team@example.com'
+    slack_configs:
+      - channel: '#dev-alerts'
+  
+  # DBA团队
+  - name: 'dba-team'
+    email_configs:
+      - to: 'dba-team@example.com'
+    webhook_configs:
+      - url: 'http://dba-alert.example.com/webhook'
+  
+  # 工作时间接收器
+  - name: 'work-hours-receiver'
+    email_configs:
+      - to: 'work-hours-team@example.com'
+    slack_configs:
+      - channel: '#work-hours-alerts'
+
+# 模板配置
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# 钉钉机器人配置模板
+- name: 'dingtalk-receiver'
+  dingtalk_configs:
+    - url: 'https://oapi.dingtalk.com/robot/send?access_token=xxxxxxxx'
+      message: |
+        {{ range .Alerts }}
+        ## [{{ .Status | toUpper }}] {{ .Labels.alertname }}
+        **开始时间**: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+        **实例**: {{ .Labels.instance }}
+        **摘要**: {{ .Annotations.summary }}
+        **描述**: {{ .Annotations.description }}
+        {{ if .Annotations.runbook }}
+        **运行手册**: [查看]({{ .Annotations.runbook }})
+        {{ end }}
+        ---
+        {{ end }}
+      send_resolved: true
+
+# 企业微信配置模板
+- name: 'wechat-work-receiver'
+  wechat_configs:
+    - api_secret: 'your-secret'
+      corp_id: 'your-corp-id'
+      agent_id: '1000002'
+      message: '{{ template "wechat.default.message" . }}'
+      send_resolved: true
+
+# 短信配置（通过阿里云、腾讯云等）
+- name: 'sms-receiver'
+  webhook_configs:
+    - url: 'http://sms-gateway.example.com/send'
+      send_resolved: false</code></pre>
+            </div>
+
+            <h3>2. 告警规则最佳实践</h3>
+            <div class="alert-levels">
+                <span class="alert-level alert-critical">紧急 (Critical)</span>
+                <span class="alert-level alert-warning">重要 (Warning)</span>
+                <span class="alert-level alert-info">警告 (Info)</span>
+            </div>
+
+            <table class="monitoring-table">
+                <thead>
+                    <tr>
+                        <th>告警级别</th>
+                        <th>响应时间</th>
+                        <th>通知渠道</th>
+                        <th>示例场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>紧急</strong></td>
+                        <td>5分钟内</td>
+                        <td>电话+短信+钉钉+邮件</td>
+                        <td>核心服务不可用、数据库宕机、重大安全事件</td>
+                    </tr>
+                    <tr>
+                        <td><strong>重要</strong></td>
+                        <td>30分钟内</td>
+                        <td>钉钉+邮件+Slack</td>
+                        <td>性能严重下降、磁盘空间不足、CPU使用率过高</td>
+                    </tr>
+                    <tr>
+                        <td><strong>警告</strong></td>
+                        <td>2小时内</td>
+                        <td>邮件+企业微信</td>
+                        <td>磁盘使用率预警、内存使用率预警、服务重启</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制规则</button>
+                <pre><code># 企业级告警规则示例
+
+groups:
+  # ============ 基础设施告警 ============
+  - name: infrastructure_alerts
+    interval: 30s
+    rules:
+      # 节点宕机
+      - alert: NodeDown
+        expr: up{job="node"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: infrastructure
+          domain: infrastructure
+          service: node
+        annotations:
+          summary: "节点宕机 {{ $labels.instance }}"
+          description: "节点 {{ $labels.instance }} 已经宕机超过1分钟"
+          runbook: "https://runbook.example.com/node-down"
+          dashboard: "https://grafana.example.com/d/node-overview"
+      
+      # CPU使用率过高
+      - alert: HighCpuUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+          domain: infrastructure
+          service: node
+        annotations:
+          summary: "高CPU使用率 {{ $labels.instance }}"
+          description: "CPU使用率超过80%已经5分钟。当前值: {{ $value | humanizePercentage }}"
+          runbook: "https://runbook.example.com/high-cpu"
+          dashboard: "https://grafana.example.com/d/node-cpu"
+      
+      # 内存使用率过高
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+          domain: infrastructure
+          service: node
+        annotations:
+          summary: "高内存使用率 {{ $labels.instance }}"
+          description: "内存使用率超过85%已经10分钟。当前值: {{ $value | humanizePercentage }}"
+          runbook: "https://runbook.example.com/high-memory"
+          dashboard: "https://grafana.example.com/d/node-memory"
+      
+      # 磁盘空间严重不足
+      - alert: DiskSpaceCritical
+        expr: (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+          domain: infrastructure
+          service: node
+        annotations:
+          summary: "磁盘空间严重不足 {{ $labels.instance }}"
+          description: "根分区使用率超过90%已经2分钟。当前值: {{ $value | humanizePercentage }}"
+          runbook: "https://runbook.example.com/disk-space"
+          dashboard: "https://grafana.example.com/d/node-disk"
+      
+      # 磁盘空间预警
+      - alert: DiskSpaceWarning
+        expr: (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+          domain: infrastructure
+          service: node
+        annotations:
+          summary: "磁盘空间预警 {{ $labels.instance }}"
+          description: "根分区使用率超过80%已经10分钟。当前值: {{ $value | humanizePercentage }}"
+          runbook: "https://runbook.example.com/disk-space"
+          dashboard: "https://grafana.example.com/d/node-disk"
+      
+      # 系统负载过高
+      - alert: HighSystemLoad
+        expr: node_load1 > count by(instance) (node_cpu_seconds_total{mode="system"}) * 1.5
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+          domain: infrastructure
+          service: node
+        annotations:
+          summary: "高系统负载 {{ $labels.instance }}"
+          description: "1分钟系统负载超过CPU核心数1.5倍已经5分钟。当前值: {{ $value }}"
+          runbook: "https://runbook.example.com/high-load"
+          dashboard: "https://grafana.example.com/d/node-load"
+
+  # ============ 应用服务告警 ============
+  - name: application_alerts
+    interval: 15s
+    rules:
+      # 服务宕机
+      - alert: ServiceDown
+        expr: up{job=~".*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: development
+          domain: application
+        annotations:
+          summary: "服务宕机 {{ $labels.job }}"
+          description: "服务 {{ $labels.job }} (实例 {{ $labels.instance }}) 已经宕机超过1分钟"
+          runbook: "https://runbook.example.com/service-down"
+          dashboard: "https://grafana.example.com/d/service-overview"
+      
+      # 高请求延迟
+      - alert: HighRequestLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job, instance)) > 1
+        for: 2m
+        labels:
+          severity: warning
+          team: development
+          domain: application
+        annotations:
+          summary: "高请求延迟 {{ $labels.job }}"
+          description: "95%的请求延迟超过1秒已经2分钟。当前值: {{ $value }}秒"
+          runbook: "https://runbook.example.com/high-latency"
+          dashboard: "https://grafana.example.com/d/service-latency"
+      
+      # 高错误率
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+          team: development
+          domain: application
+        annotations:
+          summary: "高错误率 {{ $labels.job }}"
+          description: "HTTP 5xx错误率超过5%已经5分钟。当前值: {{ $value | humanizePercentage }}"
+          runbook: "https://runbook.example.com/high-error-rate"
+          dashboard: "https://grafana.example.com/d/service-errors"
+      
+      # 低请求量（可能服务有问题但没报错）
+      - alert: LowRequestRate
+        expr: rate(http_requests_total[10m]) < 10
+        for: 5m
+        labels:
+          severity: warning
+          team: development
+          domain: application
+        annotations:
+          summary: "低请求量 {{ $labels.job }}"
+          description: "请求率低于10次/秒已经5分钟。当前值: {{ $value }}次/秒"
+          runbook: "https://runbook.example.com/low-request-rate"
+          dashboard: "https://grafana.example.com/d/service-traffic"
+
+  # ============ 数据库告警 ============
+  - name: database_alerts
+    interval: 30s
+    rules:
+      # MySQL连接数过高
+      - alert: MySQLHighConnections
+        expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: dba
+          domain: database
+          service: mysql
+        annotations:
+          summary: "MySQL连接数过高 {{ $labels.instance }}"
+          description: "MySQL连接数超过最大连接数的80%已经5分钟。当前值: {{ $value | humanizePercentage }}"
+          runbook: "https://runbook.example.com/mysql-connections"
+          dashboard: "https://grafana.example.com/d/mysql-overview"
+      
+      # MySQL复制延迟
+      - alert: MySQLReplicationLag
+        expr: mysql_slave_status_seconds_behind_master > 30
+        for: 5m
+        labels:
+          severity: critical
+          team: dba
+          domain: database
+          service: mysql
+        annotations:
+          summary: "MySQL复制延迟 {{ $labels.instance }}"
+          description: "MySQL从库复制延迟超过30秒已经5分钟。当前值: {{ $value }}秒"
+          runbook: "https://runbook.example.com/mysql-replication"
+          dashboard: "https://grafana.example.com/d/mysql-replication"
+      
+      # InnoDB缓冲池命中率低
+      - alert: MySQLInnoDBBufferPoolHitRateLow
+        expr: (1 - (mysql_global_status_innodb_buffer_pool_reads / mysql_global_status_innodb_buffer_pool_read_requests)) * 100 < 90
+        for: 10m
+        labels:
+          severity: warning
+          team: dba
+          domain: database
+          service: mysql
+        annotations:
+          summary: "InnoDB缓冲池命中率低 {{ $labels.instance }}"
+          description: "InnoDB缓冲池命中率低于90%已经10分钟。当前值: {{ $value | humanizePercentage }}"
+          runbook: "https://runbook.example.com/mysql-innodb"
+          dashboard: "https://grafana.example.com/d/mysql-innodb"
+
+  # ============ 业务指标告警 ============
+  - name: business_alerts
+    interval: 1m
+    rules:
+      # 订单量异常下降
+      - alert: OrderRateAbnormalDrop
+        expr: rate(orders_total[10m]) < rate(orders_total[40m:10m]) * 0.5
+        for: 5m
+        labels:
+          severity: critical
+          team: business
+          domain: business
+        annotations:
+          summary: "订单量异常下降"
+          description: "最近10分钟订单量比40分钟前下降超过50%。当前速率: {{ $value }} 订单/分钟"
+          runbook: "https://runbook.example.com/order-drop"
+          dashboard: "https://grafana.example.com/d/business-orders"
+      
+      # 支付失败率过高
+      - alert: HighPaymentFailureRate
+        expr: rate(payment_attempts_total{status="failed"}[10m]) / rate(payment_attempts_total[10m]) * 100 > 10
+        for: 5m
+        labels:
+          severity: critical
+          team: business
+          domain: business
+        annotations:
+          summary: "支付失败率过高"
+          description: "支付失败率超过10%已经5分钟。当前值: {{ $value | humanizePercentage }}"
+          runbook: "https://runbook.example.com/payment-failure"
+          dashboard: "https://grafana.example.com/d/business-payments"
+      
+      # 用户活跃度下降
+      - alert: UserActivityDrop
+        expr: active_users_total < (active_users_total offset 1d) * 0.7
+        for: 1h
+        labels:
+          severity: warning
+          team: business
+          domain: business
+        annotations:
+          summary: "用户活跃度下降"
+          description: "当前活跃用户数比昨天同时段下降超过30%。当前值: {{ $value }}"
+          runbook: "https://runbook.example.com/user-activity"
+          dashboard: "https://grafana.example.com/d/business-users"
+
+  # ============ 黑盒监控告警 ============
+  - name: blackbox_alerts
+    interval: 30s
+    rules:
+      # HTTP探测失败
+      - alert: HTTPProbeFailed
+        expr: probe_success{job="blackbox-http"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: infrastructure
+          domain: availability
+        annotations:
+          summary: "HTTP服务不可用 {{ $labels.instance }}"
+          description: "HTTP服务 {{ $labels.instance }} 探测失败已经1分钟"
+          runbook: "https://runbook.example.com/http-probe-failed"
+          dashboard: "https://grafana.example.com/d/blackbox-http"
+      
+      # SSL证书即将过期
+      - alert: SSLCertExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry{job="blackbox-https"} - time() < 86400 * 30  # 30天内过期
+        for: 0m
+        labels:
+          severity: warning
+          team: infrastructure
+          domain: security
+        annotations:
+          summary: "SSL证书即将过期 {{ $labels.instance }}"
+          description: "SSL证书将在{{ $value | humanizeDuration }}后过期"
+          runbook: "https://runbook.example.com/ssl-cert-expiring"
+          dashboard: "https://grafana.example.com/d/blackbox-ssl"</code></pre>
+            </div>
+        </section>
+
+        <!-- 高可用与生产优化 -->
+        <section class="content-section" id="high-availability">
+            <h2>七、高可用与生产优化</h2>
+            
+            <div class="info-tip">
+                <strong>🏗️ 生产环境要求：</strong>
+                <p>1. <strong>高可用性</strong>：监控系统自身不能成为单点故障<br>
+                2. <strong>可扩展性</strong>：支持监控上千节点，PB级数据存储<br>
+                3. <strong>性能优化</strong>：查询响应时间在秒级，资源消耗可控<br>
+                4. <strong>安全性</strong>：访问控制、数据加密、审计日志<br>
+                5. <strong>可维护性</strong>：自动化部署、配置管理、故障自愈</p>
+            </div>
+
+            <h3>1. Prometheus高可用方案</h3>
+            
+            <div class="architecture-diagram">
+                <div class="architecture-layer">
+                    <div class="layer-box" style="background: #4f46e5; color: white;">
+                        <i class="fas fa-globe"></i> 负载均衡器
+                    </div>
+                    <div class="layer-arrow">↓</div>
+                </div>
+                <div class="architecture-layer">
+                    <div class="layer-box" style="background: #7c3aed; color: white; width: 90%;">
+                        <div style="display: flex; justify-content: space-around;">
+                            <span>Prometheus A</span>
+                            <span>Prometheus B</span>
+                        </div>
+                    </div>
+                    <div class="layer-arrow">↓</div>
+                </div>
+                <div class="architecture-layer">
+                    <div class="layer-box" style="background: #8b5cf6; color: white;">
+                        Thanos Query
+                    </div>
+                    <div class="layer-arrow">↓</div>
+                </div>
+                <div class="architecture-layer">
+                    <div class="layer-box" style="background: #a78bfa; color: white;">
+                        <div style="display: flex; justify-content: space-around;">
+                            <span>对象存储</span>
+                            <span>长期存储</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制配置</button>
+                <pre><code># Prometheus高可用配置示例
+
+# 1. 多副本Prometheus配置
+# prometheus-a.yml 和 prometheus-b.yml 配置相同，但external_labels不同
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'production'
+    replica: 'A'  # 副本A使用'A'，副本B使用'B'
+
+# 2. 服务发现配置（确保两个副本抓取相同的targets）
+scrape_configs:
+  - job_name: 'node'
+    consul_sd_configs:
+      - server: 'consul.example.com:8500'
+        services: ['node-exporter']
+    relabel_configs:
+      - source_labels: [__meta_consul_service]
+        target_label: job
+      - source_labels: [__meta_consul_tags]
+        regex: ',(production|staging|dev),'
+        target_label: env
+
+# 3. Thanos Sidecar配置（与每个Prometheus实例一起运行）
+# thanos-sidecar.yml
+prometheus:
+  external_url: "http://prometheus-a.example.com:9090"
+  # 或 "http://prometheus-b.example.com:9090"
+
+thanos:
+  sidecar:
+    grpc_address: "0.0.0.0:10901"
+    http_address: "0.0.0.0:10902"
+    prometheus_url: "http://localhost:9090"
+    tsdb_path: "/var/lib/prometheus"
+  
+  objstore:
+    type: S3
+    config:
+      bucket: "thanos-metrics"
+      endpoint: "s3.example.com"
+      access_key: "YOUR_ACCESS_KEY"
+      secret_key: "YOUR_SECRET_KEY"
+      insecure: false
+      signature_version2: false
+      put_user_metadata: {}
+      http_config:
+        idle_conn_timeout: 90s
+        response_header_timeout: 2m
+      trace:
+        enable: true
+  
+  compactor:
+    data_dir: "/var/lib/thanos/compactor"
+    retention: 30d
+  
+  query:
+    http_address: "0.0.0.0:10903"
+    grpc_address: "0.0.0.0:10904"
+    store:
+      - "prometheus-a.example.com:10901"
+      - "prometheus-b.example.com:10901"
+      - "thanos-store.example.com:10901"
+
+# 4. Thanos Query前端配置
+# thanos-query.yml
+http:
+  address: "0.0.0.0:10905"
+  grace_period: 2m
+
+grpc:
+  address: "0.0.0.0:10906"
+
+query:
+  replica_labels:
+    - "replica"
+    - "prometheus_replica"
+  
+  auto_downsampling: true
+  partial_response: true
+  default_evaluation_interval: 1m
+
+stores:
+  - "prometheus-a.example.com:10901"
+  - "prometheus-b.example.com:10901"
+  - "thanos-store.example.com:10901"
+
+# 5. 负载均衡配置（Nginx）
+# nginx.conf
+upstream prometheus {
+    zone prometheus 64k;
+    server prometheus-a.example.com:9090 max_fails=3 fail_timeout=30s;
+    server prometheus-b.example.com:9090 max_fails=3 fail_timeout=30s;
+    keepalive 16;
+}
+
+upstream thanos_query {
+    zone thanos_query 64k;
+    server thanos-query.example.com:10905 max_fails=3 fail_timeout=30s;
+    keepalive 16;
+}
+
+server {
+    listen 80;
+    server_name prometheus.example.com;
+    
+    location / {
+        proxy_pass http://prometheus;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # 健康检查
+        proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+    }
+}
+
+server {
+    listen 80;
+    server_name thanos.example.com;
+    
+    location / {
+        proxy_pass http://thanos_query;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 6. 监控目标分片配置（当监控目标太多时）
+# 根据标签将目标分片到不同的Prometheus实例
+
+scrape_configs:
+  - job_name: 'node-shard-0'
+    consul_sd_configs:
+      - server: 'consul.example.com:8500'
+        services: ['node-exporter']
+    relabel_configs:
+      # 根据实例名称哈希分片
+      - source_labels: [__meta_consul_service_id]
+        action: hashmod
+        modulus: 2
+        target_label: __tmp_hash
+      - source_labels: [__tmp_hash]
+        action: keep
+        regex: ^0$  # 这个实例只抓取hash为0的目标
+  
+  - job_name: 'node-shard-1'
+    consul_sd_configs:
+      - server: 'consul.example.com:8500'
+        services: ['node-exporter']
+    relabel_configs:
+      - source_labels: [__meta_consul_service_id]
+        action: hashmod
+        modulus: 2
+        target_label: __tmp_hash
+      - source_labels: [__tmp_hash]
+        action: keep
+        regex: ^1$  # 这个实例只抓取hash为1的目标
+
+# 7. 远程写配置（将数据写入VictoriaMetrics集群）
+remote_write:
+  - url: "http://vminsert:8480/insert/0/prometheus/api/v1/write"
+    queue_config:
+      max_samples_per_send: 10000
+      capacity: 100000
+      max_shards: 30
+    write_relabel_configs:
+      # 只保留重要的指标
+      - action: keep
+        regex: "up|node_.*|process_.*|prometheus_.*"
+        source_labels: [__name__]
+
+# 8. 资源限制配置
+# 通过cgroups或systemd限制资源使用
+
+[Service]
+MemoryLimit=8G
+CPUQuota=200%
+IOWeight=100
+TasksMax=10000
+
+# 9. 数据保留策略
+# prometheus.yml
+storage:
+  tsdb:
+    retention: 15d  # 本地保留15天
+    out_of_order_time_window: 1h
+
+# 远程存储保留更长时间
+remote_write:
+  - url: "http://long-term-storage:9090/api/v1/write"
+    remote_timeout: 30s
+    write_relabel_configs:
+      - action: keep
+        regex: ".*"
+        source_labels: [__name__]
+
+# 10. 备份策略
+# backup_prometheus.sh
+#!/bin/bash
+BACKUP_DIR="/backup/prometheus"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+# 停止Prometheus抓取
+curl -X POST http://localhost:9090/-/quit
+
+# 等待写入完成
+sleep 30
+
+# 备份数据目录
+tar czf $BACKUP_DIR/prometheus_data_$DATE.tar.gz /var/lib/prometheus/
+
+# 备份配置文件
+tar czf $BACKUP_DIR/prometheus_config_$DATE.tar.gz /etc/prometheus/
+
+# 重启Prometheus
+systemctl restart prometheus
+
+echo "备份完成: $BACKUP_DIR/prometheus_data_$DATE.tar.gz"</code></pre>
+            </div>
+
+            <h3>2. 性能优化建议</h3>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">存储优化</div>
+                    <p>使用SSD存储TSDB数据，启用压缩，定期清理过期数据。</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">查询优化</div>
+                    <p>使用Recording Rules预计算常用查询，优化PromQL，避免高基数查询。</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">网络优化</div>
+                    <p>配置合理的抓取间隔，使用连接池，启用HTTP/2，减少网络往返。</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">内存优化</div>
+                    <p>调整块大小，监控内存使用，启用内存映射文件，避免OOM。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 总结与最佳实践 -->
+        <section class="content-section" id="summary">
+            <h2>八、总结与最佳实践</h2>
+            
+            <div class="success-tip">
+                <strong>✅ 监控体系建设成功标志：</strong>
+                <p>1. <strong>全面覆盖</strong>：基础设施、应用、业务全面监控<br>
+                2. <strong>及时告警</strong>：问题发现时间从小时级降低到分钟级<br>
+                3. <strong>快速定位</strong>：MTTR（平均修复时间）显著降低<br>
+                4. <strong>数据驱动</strong>：监控数据用于容量规划和性能优化<br>
+                5. <strong>团队赋能</strong>：开发、运维、业务团队都能使用监控数据</p>
+            </div>
+
+            <h3>1. 实施路线图</h3>
+            <table class="monitoring-table">
+                <thead>
+                    <tr>
+                        <th>阶段</th>
+                        <th>时间</th>
+                        <th>主要任务</th>
+                        <th>关键成果</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>第一阶段</strong></td>
+                        <td>1-2周</td>
+                        <td>基础设施监控、基础告警</td>
+                        <td>服务器监控、基础告警规则</td>
+                    </tr>
+                    <tr>
+                        <td><strong>第二阶段</strong></td>
+                        <td>2-4周</td>
+                        <td>应用监控、业务监控</td>
+                        <td>应用性能监控、关键业务指标</td>
+                    </tr>
+                    <tr>
+                        <td><strong>第三阶段</strong></td>
+                        <td>4-8周</td>
+                        <td>高可用、自动化、优化</td>
+                        <td>监控系统高可用、自动化部署</td>
+                    </tr>
+                    <tr>
+                        <td><strong>第四阶段</strong></td>
+                        <td>持续优化</td>
+                        <td>智能分析、预测告警</td>
+                        <td>异常检测、容量预测、AIOps</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>2. 监控系统检查清单</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制清单</button>
+                <pre><code># 企业级监控系统检查清单
+
+"""
+1. 数据采集检查
+    □ 所有服务器部署Node Exporter
+    □ 关键服务有专用Exporter（MySQL、Nginx等）
+    □ 应用层业务指标采集
+    □ 网络探测（黑盒监控）配置
+    □ 日志指标采集（通过Loki或ELK）
+
+2. 存储与处理检查
+    □ Prometheus配置高可用
+    □ 数据保留策略合理（本地+远程）
+    □ 告警规则分类清晰
+    □ 记录规则优化查询性能
+    □ 远程写配置正确
+
+3. 可视化检查
+    □ Grafana仪表板覆盖所有监控维度
+    □ 仪表板有清晰的分类和组织
+    □ 关键指标有实时可视化
+    □ 历史数据可回溯分析
+    □ 权限控制配置正确
+
+4. 告警通知检查
+    □ 告警分级合理（紧急/重要/警告）
+    □ 通知渠道覆盖全面（邮件/钉钉/短信）
+    □ 告警抑制规则配置合理
+    □ 静默规则管理规范
+    □ 告警处理流程明确
+
+5. 高可用检查
+    □ Prometheus多副本部署
+    □ Alertmanager集群部署
+    □ Grafana配置持久化存储
+    □ 负载均衡配置正确
+    □ 备份恢复方案验证
+
+6. 性能检查
+    □ 查询响应时间在秒级
+    □ 抓取间隔合理（不造成目标压力）
+    □ 内存使用可控（无OOM风险）
+    □ 磁盘空间充足（有预警机制）
+    □ 网络带宽足够
+
+7. 安全检查
+    □ 监控系统访问控制
+    □ 数据传输加密（HTTPS）
+    □ 认证授权配置
+    □ 审计日志开启
+    □ 敏感信息保护
+
+8. 运维检查
+    □ 配置版本管理
+    □ 自动化部署脚本
+    □ 监控系统自身监控
+    □ 容量规划预测
+    □ 定期演练恢复
+
+9. 文档检查
+    □ 架构设计文档完整
+    □ 部署运维手册
+    □ 告警处理手册（Runbook）
+    □ 故障排查指南
+    □ 培训材料
+
+10. 合规检查
+    □ 数据保留符合法规要求
+    □ 审计日志满足合规
+    □ 访问控制符合安全政策
+    □ 告警通知符合SLA
+    □ 故障处理流程规范
+"""
+
+# 监控系统成熟度评估
+MATURITY_LEVELS = {
+    "Level 1 - 基础监控": "服务器基础指标监控，手动告警",
+    "Level 2 - 标准监控": "应用和业务监控，自动化告警",
+    "Level 3 - 高级监控": "全链路监控，预测性告警",
+    "Level 4 - 智能监控": "AIOps，自动化修复，业务影响分析"
+}</code></pre>
+            </div>
+
+            <h3>3. 常见问题与解决方案</h3>
+            <div class="warning-tip">
+                <strong>❓ 问题：Prometheus内存占用过高</strong>
+                <p><strong>解决方案</strong>：<br>
+                1. 调整块大小和保留时间<br>
+                2. 使用Recording Rules预计算<br>
+                3. 限制标签基数（避免高基数标签）<br>
+                4. 启用数据分片和远程存储</p>
+            </div>
+
+            <div class="danger-tip">
+                <strong>❓ 问题：告警风暴</strong>
+                <p><strong>解决方案</strong>：<br>
+                1. 合理配置告警抑制规则<br>
+                2. 设置合理的告警间隔和等待时间<br>
+                3. 使用告警分组（按服务、按实例）<br>
+                4. 实现告警升级和降级机制</p>
+            </div>
+
+            <div class="info-tip">
+                <strong>❓ 问题：监控数据不一致</strong>
+                <p><strong>解决方案</strong>：<br>
+                1. 统一时钟同步（NTP）<br>
+                2. 配置合理的抓取超时时间<br>
+                3. 监控Exporter健康状况<br>
+                4. 实现数据一致性检查</p>
+            </div>
+
+            <h3>4. 未来发展趋势</h3>
+            <div class="monitoring-cards">
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-robot"></i> AIOps智能运维</h4>
+                    <p>机器学习异常检测、根因分析、自动化修复。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-link"></i> 可观测性</h4>
+                    <p>Metrics、Logs、Traces三位一体，全链路追踪。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-cloud"></i> 云原生监控</h4>
+                    <p>Kubernetes原生监控，Service Mesh监控，Serverless监控。</p>
+                </div>
+                <div class="monitoring-card">
+                    <h4><i class="fas fa-chart-network"></i> 业务可观测性</h4>
+                    <p>业务指标监控，用户体验监控，业务影响分析。</p>
+                </div>
+            </div>
+
+            <div class="success-tip" style="margin-top: 30px;">
+                <strong>🎯 最后建议：</strong>
+                <p>1. <strong>从小处着手</strong>：从核心业务开始，逐步扩大监控范围<br>
+                2. <strong>持续迭代</strong>：监控系统需要持续优化和演进<br>
+                3. <strong>文化先行</strong>：建立数据驱动的运维文化<br>
+                4. <strong>工具为辅</strong>：工具是手段，解决问题才是目的<br>
+                5. <strong>全员参与</strong>：监控不仅是运维的事，需要开发、测试、业务共同参与</p>
+            </div>
+        </section>
+
+        <!-- 文章结束语 -->
+        <div style="text-align: center; margin: 50px 0 30px; padding: 30px; border-radius: 12px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));">
+            <h3 style="color: #6366f1; margin-bottom: 15px;">📊 监控是运维的眼睛，告警是运维的耳朵！</h3>
+            <p style="margin-bottom: 20px;">一个完善的企业级监控告警系统是保障业务稳定运行的基石。通过本文的介绍，您应该能够构建一套从数据采集、存储处理、可视化展示到告警通知的完整监控体系。记住，监控的最终目标不是收集数据，而是通过数据发现问题、解决问题、预防问题。</p>
+            <p style="font-size: 14px; color: #94a3b8;">如有问题或建议，欢迎在评论区留言交流！</p>
+        </div>
+
+        <!-- 文章信息 -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #334155;">
+            <div>
+                <span style="font-size: 14px; color: #94a3b8;">标签：</span>
+                <span style="background: #1e293b; color: #cbd5e1; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin-right: 8px;">监控系统</span>
+                <span style="background: #1e293b; color: #cbd5e1; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin-right: 8px;">Prometheus</span>
+                <span style="background: #1e293b; color: #cbd5e1; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin-right: 8px;">Grafana</span>
+                <span style="background: #1e293b; color: #cbd5e1; padding: 4px 12px; border-radius: 20px; font-size: 13px;">运维实战</span>
+            </div>
+            <div style="font-size: 14px; color: #94a3b8;">
+                <span>最后更新：2025-12-08</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- 回到顶部按钮 -->
+    <div class="back-to-top" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <script>
+        // 主题切换
+        function toggleTheme() {
+            const body = document.body;
+            if (body.classList.contains('light')) {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // 页面加载时应用保存的主题
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.classList.remove('light', 'dark');
+            document.body.classList.add(savedTheme);
+            
+            // 初始化代码复制功能
+            initCopyButtons();
+        });
+
+        // 复制代码功能
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling;
+            const codeText = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(codeText).then(() => {
+                // 显示复制成功提示
+                button.classList.add('copied');
+                button.textContent = '已复制！';
+                
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.textContent = button.textContent.includes('SQL') ? '复制SQL' : 
+                                      button.textContent.includes('脚本') ? '复制脚本' : 
+                                      button.textContent.includes('配置') ? '复制配置' : 
+                                      button.textContent.includes('清单') ? '复制清单' : '复制代码';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                button.textContent = '复制失败';
+                setTimeout(() => {
+                    button.textContent = '复制代码';
+                }, 2000);
+            });
+        }
+
+        // 初始化所有复制按钮
+        function initCopyButtons() {
+            const copyButtons = document.querySelectorAll('.copy-btn');
+            copyButtons.forEach(button => {
+                button.addEventListener('click', () => copyCode(button));
+            });
+        }
+
+        // 回到顶部功能
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 显示/隐藏回到顶部按钮
+        window.addEventListener('scroll', () => {
+            const backToTopBtn = document.querySelector('.back-to-top');
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+
+        // 目录点击平滑滚动
+        document.querySelectorAll('.toc a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    const offset = 100; // 导航栏高度偏移
+                    const targetPosition = targetElement.offsetTop - offset;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                    
+                    // 更新URL哈希（可选）
+                    history.pushState(null, null, `#${targetId}`);
+                }
+            });
+        });
+
+        // 监听滚动，高亮当前查看的章节
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.content-section');
+            const navLinks = document.querySelectorAll('.toc a');
+            
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 150;
+                const sectionHeight = section.clientHeight;
+                
+                if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${currentSection}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // 代码块语法高亮（简单实现）
+        function highlightCode() {
+            const codeBlocks = document.querySelectorAll('pre code');
+            codeBlocks.forEach(block => {
+                // 简单的关键字高亮
+                const code = block.textContent;
+                const highlighted = code
+                    .replace(/\b(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|GRANT|REVOKE|FROM|WHERE|AND|OR|JOIN|INTO|VALUES|SET|TABLE|DATABASE|INDEX|VIEW|PROCEDURE|FUNCTION|TRIGGER|EVENT)\b/gi, '<span class="keyword">$1</span>')
+                    .replace(/\b(NULL|TRUE|FALSE|NOT)\b/gi, '<span class="constant">$1</span>')
+                    .replace(/("[^"]*"|'[^']*')/g, '<span class="string">$1</span>')
+                    .replace(/(--.*$|\/\*[\s\S]*?\*\/)/gm, '<span class="comment">$1</span>');
+                
+                block.innerHTML = highlighted;
+            });
+        }
+
+        // 页面加载完成后执行代码高亮
+        window.addEventListener('load', highlightCode);
+    </script>
+</body>
+</html>
