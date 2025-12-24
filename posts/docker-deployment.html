@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker容器化部署完全指南 - 何哥的博客</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+            line-height: 1.7;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.light {
+            background-color: #f8fafc;
+            color: #1f2937;
+        }
+
+        body.dark {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        body.light .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .navbar {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        body.light .nav-menu a {
+            color: #4b5563;
+        }
+
+        body.dark .nav-menu a {
+            color: #cbd5e1;
+        }
+
+        body.light .nav-menu a:hover {
+            color: #3b82f6;
+            background: #f3f4f6;
+        }
+
+        body.dark .nav-menu a:hover {
+            color: #60a5fa;
+            background: #1e293b;
+        }
+
+        .theme-toggle {
+            width: 50px;
+            height: 26px;
+            border-radius: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        body.light .theme-toggle {
+            background: #e5e7eb;
+        }
+
+        body.dark .theme-toggle {
+            background: #3b82f6;
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            background: white;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark .theme-toggle::before {
+            transform: translateX(24px);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            max-width: 900px;
+            margin: 100px auto 60px;
+            padding: 0 20px;
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 文章头部 */
+        .article-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid;
+        }
+
+        body.light .article-header {
+            border-color: #e5e7eb;
+        }
+
+        body.dark .article-header {
+            border-color: #334155;
+        }
+
+        .article-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        body.light .article-title {
+            color: #1f2937;
+        }
+
+        body.dark .article-title {
+            color: #f1f5f9;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+        }
+
+        body.light .article-meta {
+            color: #6b7280;
+        }
+
+        body.dark .article-meta {
+            color: #94a3b8;
+        }
+
+        .article-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .category-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        body.light .category-badge {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        body.dark .category-badge {
+            background: #1e3a8a;
+            color: #93c5fd;
+        }
+
+        .article-intro {
+            font-size: 16px;
+            line-height: 1.8;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+        }
+
+        body.light .article-intro {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        body.dark .article-intro {
+            background: #1e293b;
+            color: #cbd5e1;
+        }
+
+        /* 目录 */
+        .toc {
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        body.light .toc {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .toc {
+            background: #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .toc h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        body.light .toc h4 {
+            color: #1f2937;
+        }
+
+        body.dark .toc h4 {
+            color: #f1f5f9;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            gap: 10px;
+        }
+
+        .toc li a {
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: block;
+        }
+
+        body.light .toc li a {
+            color: #4b5563;
+        }
+
+        body.dark .toc li a {
+            color: #cbd5e1;
+        }
+
+        body.light .toc li a:hover {
+            color: #3b82f6;
+            background: #f3f4f6;
+            transform: translateX(4px);
+        }
+
+        body.dark .toc li a:hover {
+            color: #60a5fa;
+            background: #0f172a;
+            transform: translateX(4px);
+        }
+
+        /* 内容区块 */
+        .content-section {
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        body.light .content-section {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .content-section {
+            background: #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .content-section:hover {
+            transform: translateY(-2px);
+        }
+
+        body.light .content-section:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark .content-section:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid;
+        }
+
+        body.light h2 {
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        body.dark h2 {
+            color: #60a5fa;
+            border-color: rgba(96, 165, 250, 0.2);
+        }
+
+        h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 24px 0 16px;
+        }
+
+        body.light h3 {
+            color: #1f2937;
+        }
+
+        body.dark h3 {
+            color: #f1f5f9;
+        }
+
+        p {
+            margin-bottom: 16px;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        ul {
+            margin: 16px 0 16px 24px;
+            line-height: 1.8;
+        }
+
+        li {
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        body.light strong {
+            color: #1f2937;
+        }
+
+        body.dark strong {
+            color: #f1f5f9;
+        }
+
+        /* 代码块 */
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre {
+            padding: 24px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            border-left: 4px solid #3b82f6;
+        }
+
+        body.light pre {
+            background: #f1f5f9;
+        }
+
+        body.dark pre {
+            background: #0f172a;
+        }
+
+        code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        body.light code {
+            color: #dc2626;
+            background: #f1f5f9;
+        }
+
+        body.dark code {
+            color: #f87171;
+            background: #1e293b;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #2563eb;
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+        }
+
+        /* 警告提示 */
+        .warning-tip {
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        body.light .warning-tip {
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        body.dark .warning-tip {
+            background: rgba(245, 158, 11, 0.15);
+        }
+
+        .warning-tip strong {
+            color: #f59e0b;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 */
+        .docker-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .docker-table th, .docker-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid;
+        }
+
+        body.light .docker-table th {
+            background: #f1f5f9;
+            color: #1f2937;
+            border-color: #e5e7eb;
+        }
+
+        body.dark .docker-table th {
+            background: #0f172a;
+            color: #f1f5f9;
+            border-color: #334155;
+        }
+
+        body.light .docker-table td {
+            border-color: #e5e7eb;
+        }
+
+        body.dark .docker-table td {
+            border-color: #334155;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .article-title {
+                font-size: 28px;
+            }
+
+            .content-section {
+                padding: 20px;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 13px;
+            }
+
+            .copy-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .docker-table th, .docker-table td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 0 16px;
+            }
+
+            .toc {
+                padding: 16px;
+            }
+
+            .article-title {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            h3 {
+                font-size: 18px;
+            }
+
+            .docker-table {
+                font-size: 13px;
+            }
+        }
+
+        /* 回到顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 999;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="light">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="logo">何哥的博客</a>
+            <ul class="nav-menu">
+                <li><a href="../index.html">首页</a></li>
+                <li><a href="../index.html#projects">项目案例</a></li>
+                <li><a href="../index.html#experience">工作经历</a></li>
+                <li><a href="../pages/articles.html">技术文章</a></li>
+                <li><a href="../pages/about.html">关于我</a></li>
+            </ul>
+            <div class="theme-toggle" onclick="toggleTheme()"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- 返回按钮 -->
+        <a href="../pages/articles.html" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            <span>返回文章列表</span>
+        </a>
+
+        <!-- 文章头部 -->
+        <div class="article-header">
+            <h1 class="article-title">Docker容器化部署完全指南</h1>
+            <div class="article-meta">
+                <span class="category-badge">运维实战</span>
+                <span><i class="far fa-calendar"></i> 2025-12-20</span>
+                <span><i class="far fa-clock"></i> 阅读 5 分钟</span>
+                <span><i class="far fa-eye"></i> 318 次浏览</span>
+            </div>
+        </div>
+
+        <!-- 文章简介 -->
+        <div class="article-intro">
+            作为拥有18年运维经验的技术人，我见证了从物理机部署→虚拟机部署→容器化部署的全历程。Docker作为容器化技术的事实标准，已成为现代运维的必备技能。本文从零开始讲解Docker核心概念、环境搭建、Dockerfile编写、镜像优化、容器编排、生产级部署等核心内容，结合实战避坑点，帮你掌握容器化部署的最佳实践，解决"容器部署容易，稳定运行难"的痛点。
+        </div>
+
+        <!-- 目录 -->
+        <div class="toc">
+            <h4>📋 文章目录</h4>
+            <ul>
+                <li><a href="#value">一、Docker容器化核心价值（为什么放弃传统部署）</a></li>
+                <li><a href="#environment">二、Docker环境搭建（多系统+避坑版）</a></li>
+                <li><a href="#core-concept">三、Docker核心概念与实战（镜像/容器/网络/数据卷）</a></li>
+                <li><a href="#dockerfile">四、Dockerfile编写与镜像优化（生产级规范）</a></li>
+                <li><a href="#compose">五、Docker Compose容器编排（多服务部署实战）</a></li>
+                <li><a href="#registry">六、Docker镜像仓库管理（私有仓库搭建）</a></li>
+                <li><a href="#best-practice">七、生产环境最佳实践（安全/监控/日志/避坑）</a></li>
+                <li><a href="#summary">八、总结与进阶方向</a></li>
+            </ul>
+        </div>
+
+        <!-- Docker核心价值 -->
+        <section class="content-section" id="value">
+            <h2>一、Docker容器化核心价值（为什么放弃传统部署）</h2>
+            <h3>1. 传统部署的痛点</h3>
+            <ul>
+                <li><strong>环境不一致:</strong> "开发环境能跑，测试环境报错，生产环境崩了"，依赖版本、系统配置差异导致部署故障</li>
+                <li><strong>资源利用率低:</strong> 虚拟机部署资源隔离过粗，单机只能部署少量服务，资源浪费30%-50%</li>
+                <li><strong>部署效率低:</strong> 手动配置环境、安装依赖，部署一套服务耗时数小时，易出错</li>
+                <li><strong>扩缩容困难:</strong> 服务扩容需要重新部署虚拟机，耗时久，无法快速响应业务峰值</li>
+                <li><strong>运维成本高:</strong> 不同服务器环境不一致，批量运维难度大，版本回滚复杂</li>
+            </ul>
+
+            <h3>2. Docker容器化的核心优势</h3>
+            <table class="docker-table">
+                <tr>
+                    <th>优势维度</th>
+                    <th>具体价值</th>
+                    <th>运维效率提升</th>
+                </tr>
+                <tr>
+                    <td>环境一致性</td>
+                    <td>镜像打包所有依赖，一次构建，处处运行</td>
+                    <td>部署故障减少80%</td>
+                </tr>
+                <tr>
+                    <td>轻量级隔离</td>
+                    <td>基于内核的容器隔离，启动毫秒级，单机可部署数百个容器</td>
+                    <td>资源利用率提升50%+</td>
+                </tr>
+                <tr>
+                    <td>部署时间从小时级→分钟级</td>
+                </tr>
+                <tr>
+                    <td>弹性伸缩</td>
+                    <td>基于镜像快速扩缩容，适配业务峰值</td>
+                    <td>扩容响应速度提升10倍</td>
+                </tr>
+                <tr>
+                    <td>版本管理</td>
+                    <td>镜像版本化，支持一键回滚，灰度发布</td>
+                    <td>回滚时间从小时级→秒级</td>
+                </tr>
+                <tr>
+                    <td>DevOps落地</td>
+                    <td>标准化镜像构建、部署流程，打通开发→测试→生产</td>
+                    <td>迭代效率提升30%+</td>
+                </tr>
+            </table>
+
+            <h3>3. Docker vs 虚拟机 核心对比</h3>
+            <table class="docker-table">
+                <tr>
+                    <th>特性</th>
+                    <th>Docker容器</th>
+                    <th>虚拟机（VM）</th>
+                </tr>
+                <tr>
+                    <td>启动时间</td>
+                    <td>秒级/毫秒级</td>
+                    <td>分钟级</td>
+                </tr>
+                <tr>
+                    <td>资源占用</td>
+                    <td>MB级，共享宿主机内核</td>
+                    <td>GB级，独立内核</td>
+                </tr>
+                <tr>
+                    <td>隔离级别</td>
+                    <td>进程级隔离（内核级）</td>
+                    <td>硬件级隔离（完全隔离）</td>
+                </tr>
+                <tr>
+                    <td>镜像体积</td>
+                    <td>小（几十MB）</td>
+                    <td>大（几GB）</td>
+                </tr>
+                <tr>
+                    <td>移植性</td>
+                    <td>极高（跨平台/跨云厂商）</td>
+                    <td>较低（依赖虚拟化平台）</td>
+                </tr>
+                <tr>
+                    <td>性能损耗</td>
+                    <td>接近原生（<5%）</td>
+                    <td>较高（10%-20%）</td>
+                </tr>
+            </table>
+
+            <div class="warning-tip">
+                <strong>⚠️ 避坑提示:</strong>
+                <p>Docker不是银弹！容器化适合无状态服务、微服务架构，对于强依赖硬件、需要完全隔离的场景（如高安全要求的金融服务），虚拟机仍是更好选择。生产环境建议"核心服务容器化，特殊服务虚拟化"的混合架构。</p>
+            </div>
+        </section>
+
+        <!-- Docker环境搭建 -->
+        <section class="content-section" id="environment">
+            <h2>二、Docker环境搭建（多系统+避坑版）</h2>
+            
+            <h3>1. CentOS 7/8 安装Docker（生产环境推荐）</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># ========== 1. 卸载旧版本（避免冲突） ==========
+yum remove -y docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
+
+# ========== 2. 安装依赖包 ==========
+yum install -y yum-utils device-mapper-persistent-data lvm2
+
+# ========== 3. 添加Docker官方源（国内建议用阿里云源） ==========
+yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+# ========== 4. 安装Docker CE（指定版本，避免自动升级） ==========
+# 查看可用版本
+yum list docker-ce --showduplicates | sort -r
+# 安装稳定版（推荐24.0.x系列）
+yum install -y docker-ce-24.0.9 docker-ce-cli-24.0.9 containerd.io
+
+# ========== 5. 启动并设置开机自启 ==========
+systemctl start docker
+systemctl enable docker
+systemctl status docker
+
+# ========== 6. 配置国内镜像加速（解决拉取镜像慢） ==========
+mkdir -p /etc/docker
+cat > /etc/docker/daemon.json << EOF
+{
+  "registry-mirrors": [
+    "https://hub-mirror.c.163.com",
+    "https://mirror.baidubce.com",
+    "https://docker.mirrors.ustc.edu.cn"
+  ],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m",
+    "max-file": "3"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+
+# 重启Docker生效
+systemctl daemon-reload
+systemctl restart docker
+
+# ========== 7. 验证安装 ==========
+docker --version
+docker run --rm hello-world</code></pre>
+            </div>
+
+            <h3>2. Ubuntu 20.04/22.04 安装Docker</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># ========== 1. 卸载旧版本 ==========
+apt-get remove -y docker docker-engine docker.io containerd runc
+
+# ========== 2. 更新包索引 ==========
+apt-get update
+apt-get install -y ca-certificates curl gnupg lsb-release
+
+# ========== 3. 添加Docker GPG密钥 ==========
+mkdir -p /etc/apt/trusted.gpg.d
+curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/docker.gpg
+
+# ========== 4. 添加源 ==========
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/trusted.gpg.d/docker.gpg] https://mirrors.aliyun.com/docker-ce/linux/ubuntu \
+$(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# ========== 5. 安装Docker ==========
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io
+
+# ========== 6. 配置加速（同CentOS） ==========
+mkdir -p /etc/docker
+cat > /etc/docker/daemon.json << EOF
+{
+  "registry-mirrors": [
+    "https://hub-mirror.c.163.com",
+    "https://mirror.baidubce.com"
+  ]
+}
+EOF
+
+systemctl daemon-reload
+systemctl restart docker
+systemctl enable docker
+
+# ========== 7. 验证 ==========
+docker --version
+docker run --rm hello-world</code></pre>
+            </div>
+
+            <h3>3. Windows/macOS 安装Docker Desktop</h3>
+            <ul>
+                <li><strong>Windows:</strong>
+                    <ul>
+                        <li>要求Windows 10/11专业版/企业版，开启Hyper-V和容器功能</li>
+                        <li>下载地址：<a href="https://www.docker.com/products/docker-desktop/" target="_blank">Docker Desktop</a></li>
+                        <li>安装后在设置中配置国内镜像加速，重启生效</li>
+                    </ul>
+                </li>
+                <li><strong>macOS:</strong>
+                    <ul>
+                        <li>支持Intel和M系列芯片，下载对应版本</li>
+                        <li>安装后在Preferences → Docker Engine中添加镜像加速地址</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="warning-tip">
+                <strong>⚠️ 核心避坑点:</strong>
+                <ul style="margin-top: 10px;">
+                    <li>生产环境必须指定Docker版本安装，禁止使用<code>yum install docker-ce</code>（会自动安装最新版，易出兼容性问题）</li>
+                    <li>CentOS 7需确保内核版本≥3.10.0-1160，过低会导致Docker启动失败</li>
+                    <li>国内环境必须配置镜像加速，否则拉取官方镜像极慢甚至失败</li>
+                    <li>非root用户使用Docker需添加用户到docker组：<code>usermod -aG docker $USER</code>，然后重新登录</li>
+                    <li>禁止在生产环境使用Docker Desktop，仅用于开发测试</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Docker核心概念与实战 -->
+        <section class="content-section" id="core-concept">
+            <h2>三、Docker核心概念与实战（镜像/容器/网络/数据卷）</h2>
+            
+            <h3>1. 核心概念速览</h3>
+            <table class="docker-table">
+                <tr>
+                    <th>概念</th>
+                    <th>核心定义</th>
+                    <th>类比理解</th>
+                </tr>
+                <tr>
+                    <td>镜像（Image）</td>
+                    <td>只读的模板，包含运行应用所需的代码、依赖、配置</td>
+                    <td>软件安装包（如.exe）</td>
+                </tr>
+                <tr>
+                    <td>容器（Container）</td>
+                    <td>镜像的运行实例，可读写，独立隔离</td>
+                    <td>安装好的软件进程</td>
+                </tr>
+                <tr>
+                    <td>仓库（Repository）</td>
+                    <td>存储镜像的仓库，分公有/私有</td>
+                    <td>软件下载站（如应用商店）</td>
+                </tr>
+                <tr>
+                    <td>数据卷（Volume）</td>
+                    <td>持久化存储容器数据的目录</td>
+                    <td>软件的数据文件夹</td>
+                </tr>
+                <tr>
+                    <td>网络（Network）</td>
+                    <td>容器间/容器与宿主机的通信方式</td>
+                    <td>局域网/交换机</td>
+                </tr>
+            </table>
+
+            <h3>2. 镜像核心操作</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># 1. 拉取镜像（指定版本，避免latest）
+docker pull nginx:1.24.0
+docker pull mysql:8.0.36
+
+# 2. 查看本地镜像
+docker images
+docker image ls
+
+# 3. 搜索镜像
+docker search redis
+
+# 4. 标记镜像（用于推送到仓库）
+docker tag nginx:1.24.0 myregistry.com/nginx:1.24.0
+
+# 5. 删除镜像（先删容器，再删镜像）
+docker rmi nginx:1.24.0
+# 强制删除
+docker rmi -f nginx:1.24.0
+
+# 6. 导出/导入镜像（离线部署）
+docker save -o nginx-1.24.0.tar nginx:1.24.0
+docker load -i nginx-1.24.0.tar
+
+# 7. 清理无用镜像
+docker image prune -a</code></pre>
+            </div>
+
+            <h3>3. 容器核心操作</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># 1. 创建并启动容器（常用参数）
+# -d: 后台运行 -p: 端口映射 -v: 数据卷挂载 --name: 容器名 --restart: 重启策略
+docker run -d \
+  -p 80:80 \
+  -v nginx-html:/usr/share/nginx/html \
+  -v nginx-conf:/etc/nginx/conf.d \
+  --name nginx-server \
+  --restart=always \
+  nginx:1.24.0
+
+# 2. 查看容器
+# 运行中的容器
+docker ps
+# 所有容器（含停止的）
+docker ps -a
+
+# 3. 容器启停/重启
+docker start nginx-server
+docker stop nginx-server
+docker restart nginx-server
+
+# 4. 进入容器（调试用）
+# 方式1：bash终端
+docker exec -it nginx-server /bin/bash
+# 方式2：sh终端（兼容更多镜像）
+docker exec -it nginx-server /bin/sh
+
+# 5. 查看容器日志
+# 实时日志
+docker logs -f nginx-server
+# 最近100行
+docker logs --tail=100 nginx-server
+# 按时间筛选
+docker logs --since="2025-12-01" nginx-server
+
+# 6. 查看容器详情
+docker inspect nginx-server
+
+# 7. 删除容器
+# 停止并删除
+docker stop nginx-server && docker rm nginx-server
+# 强制删除运行中的容器
+docker rm -f nginx-server
+
+# 8. 清理停止的容器
+docker container prune</code></pre>
+            </div>
+
+            <h3>4. 数据卷（持久化核心）</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># 1. 创建数据卷
+docker volume create mysql-data
+
+# 2. 查看数据卷
+docker volume ls
+# 查看数据卷详情（含存储路径）
+docker volume inspect mysql-data
+
+# 3. 挂载数据卷到容器
+docker run -d \
+  -p 3306:3306 \
+  -v mysql-data:/var/lib/mysql \
+  -e MYSQL_ROOT_PASSWORD=123456 \
+  --name mysql-server \
+  mysql:8.0.36
+
+# 4. 删除数据卷（谨慎！数据会丢失）
+docker volume rm mysql-data
+# 清理未使用的数据卷
+docker volume prune</code></pre>
+            </div>
+
+            <h3>5. 网络配置</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># 1. 查看网络
+docker network ls
+
+# 2. 创建自定义网络（推荐，容器间可通过容器名通信）
+docker network create my-app-network
+
+# 3. 将容器加入自定义网络
+docker run -d \
+  --name nginx-1 \
+  --network my-app-network \
+  nginx:1.24.0
+
+docker run -d \
+  --name nginx-2 \
+  --network my-app-network \
+  nginx:1.24.0
+
+# 4. 容器间互通（在nginx-1中ping nginx-2）
+docker exec -it nginx-1 ping nginx-2
+
+# 5. 删除网络
+docker network rm my-app-network</code></pre>
+            </div>
+
+            <div class="warning-tip">
+                <strong>⚠️ 实战避坑:</strong>
+                <p>1. 禁止使用<code>docker run</code>的--privileged=true参数（赋予容器根权限，安全风险极高）；<br>
+                2. 容器内不要存储重要数据，必须通过数据卷挂载宿主机/外部存储；<br>
+                3. 自定义网络优先于默认桥接网络，避免端口冲突和通信问题；<br>
+                4. 生产环境容器必须设置--restart=always，避免宿主机重启后容器不启动。</p>
+            </div>
+        </section>
+
+        <!-- Dockerfile编写与镜像优化 -->
+        <section class="content-section" id="dockerfile">
+            <h2>四、Dockerfile编写与镜像优化（生产级规范）</h2>
+            
+            <h3>1. Dockerfile核心指令</h3>
+            <table class="docker-table">
+                <tr>
+                    <th>指令</th>
+                    <th>作用</th>
+                    <th>示例</th>
+                </tr>
+                <tr>
+                    <td>FROM</td>
+                    <td>基础镜像（必须第一个指令）</td>
+                    <td>FROM centos:7<br>FROM python:3.9-slim</td>
+                </tr>
+                <tr>
+                    <td>WORKDIR</td>
+                    <td>设置工作目录</td>
+                    <td>WORKDIR /app</td>
+                </tr>
+                <tr>
+                    <td>COPY/ADD</td>
+                    <td>复制文件到镜像（ADD支持解压）</td>
+                    <td>COPY ./app /app<br>ADD app.tar.gz /app</td>
+                </tr>
+                <tr>
+                    <td>RUN</td>
+                    <td>执行命令（构建时运行）</td>
+                    <td>RUN yum install -y nginx</td>
+                </tr>
+                <tr>
+                    <td>ENV</td>
+                    <td>设置环境变量</td>
+                    <td>ENV PYTHONUNBUFFERED=1</td>
+                </tr>
+                <tr>
+                    <td>EXPOSE</td>
+                    <td>声明端口（仅文档，不实际映射）</td>
+                    <td>EXPOSE 8080</td>
+                </tr>
+                <tr>
+                    <td>CMD/ENTRYPOINT</td>
+                    <td>容器启动命令（CMD可被覆盖）</td>
+                    <td>CMD ["python", "app.py"]<br>ENTRYPOINT ["/usr/sbin/nginx"]</td>
+                </tr>
+                <tr>
+                    <td>VOLUME</td>
+                    <td>声明数据卷</td>
+                    <td>VOLUME ["/data"]</td>
+                </tr>
+            </table>
+
+            <h3>2. 生产级Dockerfile示例（Python应用）</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># ========== 阶段1：构建依赖 ==========
+FROM python:3.9-slim AS builder
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制依赖文件
+COPY requirements.txt .
+
+# 安装依赖到临时目录
+RUN pip install --no-cache-dir -r requirements.txt -t /app/lib
+
+# ========== 阶段2：构建最终镜像 ==========
+FROM python:3.9-slim
+
+# 设置非root用户（安全）
+RUN useradd -m appuser
+WORKDIR /app
+
+# 复制依赖和代码
+COPY --from=builder /app/lib /app/lib
+COPY app.py .
+
+# 设置环境变量
+ENV PYTHONPATH=/app/lib \
+    PYTHONUNBUFFERED=1
+
+# 暴露端口
+EXPOSE 8080
+
+# 切换非root用户
+USER appuser
+
+# 启动命令
+CMD ["python", "app.py"]</code></pre>
+            </div>
+
+            <h3>3. 镜像优化核心技巧</h3>
+            <ul>
+                <li><strong>多阶段构建:</strong> 分离构建/运行阶段，剔除构建依赖，减少镜像体积（如上例）</li>
+                <li><strong>使用轻量级基础镜像:</strong> 优先用alpine/slim版本（如python:3.9-slim vs python:3.9），体积减少80%+</li>
+                <li><strong>合并RUN指令:</strong> 减少镜像分层（用&&连接，最后清理缓存）
+                    <pre><code>RUN yum install -y nginx \
+    && yum clean all \
+    && rm -rf /var/cache/yum/*</code></pre>
+                </li>
+                <li><strong>使用.dockerignore:</strong> 排除无关文件（如.git、__pycache__、日志），减少构建上下文</li>
+                <li><strong>避免安装无用依赖:</strong> 仅安装运行必需的包，禁止安装vim、curl等调试工具（生产环境可通过exec临时安装）</li>
+                <li><strong>指定版本标签:</strong> 禁止使用latest标签，确保镜像版本可追溯</li>
+            </ul>
+
+            <h3>4. 构建镜像与推送到仓库</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># 1. 构建镜像（-t: 标签，.：Dockerfile所在目录）
+docker build -t my-python-app:1.0.0 .
+
+# 2. 本地测试镜像
+docker run -p 8080:8080 my-python-app:1.0.0
+
+# 3. 推送到私有仓库（先登录）
+docker login myregistry.com
+docker tag my-python-app:1.0.0 myregistry.com/my-python-app:1.0.0
+docker push myregistry.com/my-python-app:1.0.0</code></pre>
+            </div>
+
+            <div class="warning-tip">
+                <strong>⚠️ 安全规范:</strong>
+                <p>1. 镜像必须使用非root用户运行（避免容器逃逸风险）；<br>
+                2. 禁止在Dockerfile中硬编码密码/密钥（用环境变量或外部配置）；<br>
+                3. 定期扫描镜像漏洞：<code>docker scan my-python-app:1.0.0</code>；<br>
+                4. 构建镜像后删除构建依赖（如编译工具、源码）。</p>
+            </div>
+        </section>
+
+        <!-- Docker Compose容器编排 -->
+        <section class="content-section" id="compose">
+            <h2>五、Docker Compose容器编排（多服务部署实战）</h2>
+            
+            <h3>1. Compose安装（Linux）</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># 下载Compose（指定版本）
+curl -L "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+# 添加执行权限
+chmod +x /usr/local/bin/docker-compose
+
+# 验证安装
+docker-compose --version</code></pre>
+            </div>
+
+            <h3>2. 核心概念</h3>
+            <ul>
+                <li><strong>services:</strong> 定义多个容器服务（如web、mysql、redis）</li>
+                <li><strong>networks:</strong> 自定义网络，服务间自动互通</li>
+                <li><strong>volumes:</strong> 定义数据卷，持久化数据</li>
+                <li><strong>env_file:</strong> 环境变量文件，分离配置</li>
+            </ul>
+
+            <h3>3. 生产级docker-compose.yml示例（Web+MySQL+Redis）</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code>version: '3.8'
+
+# 自定义网络
+networks:
+  app-network:
+    driver: bridge
+
+# 数据卷
+volumes:
+  mysql-data:
+  redis-data:
+  nginx-html:
+
+# 服务定义
+services:
+  # Nginx服务
+  nginx:
+    image: nginx:1.24.0
+    container_name: app-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - nginx-html:/usr/share/nginx/html
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - app-network
+    restart: always
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MySQL服务
+  mysql:
+    image: mysql:8.0.36
+    container_name: app-mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_ROOT_PASSWORD=MyPass123!
+      - MYSQL_DATABASE=app_db
+      - MYSQL_USER=app_user
+      - MYSQL_PASSWORD=AppPass456!
+    networks:
+      - app-network
+    restart: always
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis服务
+  redis:
+    image: redis:7.2.3
+    container_name: app-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --requirepass RedisPass789! --appendonly yes
+    networks:
+      - app-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "RedisPass789!", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3</code></pre>
+            </div>
+
+            <h3>4. Compose核心操作</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># 1. 启动所有服务（后台运行）
+docker-compose up -d
+
+# 2. 查看服务状态
+docker-compose ps
+
+# 3. 查看指定服务日志
+docker-compose logs -f nginx
+
+# 4. 启动/停止/重启服务
+docker-compose start mysql
+docker-compose stop mysql
+docker-compose restart nginx
+
+# 5. 构建自定义镜像（如果有build字段）
+docker-compose build
+
+# 6. 扩展服务（仅适用于swarm模式）
+docker-compose up -d --scale web=3
+
+# 7. 停止并删除容器/网络（保留数据卷）
+docker-compose down
+
+# 8. 停止并删除所有（含数据卷，谨慎！）
+docker-compose down -v</code></pre>
+            </div>
+
+            <div class="warning-tip">
+                <strong>⚠️ Compose避坑:</strong>
+                <p>1. 生产环境不要用--scale扩展服务（推荐K8s），Compose仅适用于单机部署；<br>
+                2. 环境变量不要硬编码在yml中，用env_file: .env分离；<br>
+                3. 必须设置restart: always和healthcheck，确保服务异常自动恢复；<br>
+                4. 配置资源限制（cpus/memory），避免单个服务占满宿主机资源。</p>
+            </div>
+        </section>
+
+        <!-- Docker镜像仓库管理 -->
+        <section class="content-section" id="registry">
+            <h2>六、Docker镜像仓库管理（私有仓库搭建）</h2>
+            
+            <h3>1. 搭建私有仓库（Docker Registry）</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># 1. 拉取registry镜像
+docker pull registry:2.8.3
+
+# 2. 创建数据卷
+docker volume create registry-data
+
+# 3. 启动私有仓库（带认证+HTTPS）
+# 先创建认证文件
+mkdir -p /opt/registry/auth
+docker run --rm \
+  -v /opt/registry/auth:/auth \
+  -e "REGISTRY_AUTH=htpasswd" \
+  -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
+  -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd" \
+  registry:2.8.3 \
+  htpasswd -Bbn admin MyRegistryPass123! > /opt/registry/auth/htpasswd
+
+# 创建SSL证书目录（替换为自己的域名/IP）
+mkdir -p /opt/registry/certs
+# 生成自签证书（生产环境用CA签发证书）
+openssl req -newkey rsa:4096 -nodes -sha256 -keyout /opt/registry/certs/domain.key -x509 -days 365 -out /opt/registry/certs/domain.crt
+
+# 启动仓库容器
+docker run -d \
+  -p 5000:5000 \
+  --name docker-registry \
+  --restart=always \
+  -v registry-data:/var/lib/registry \
+  -v /opt/registry/auth:/auth \
+  -v /opt/registry/certs:/certs \
+  -e "REGISTRY_AUTH=htpasswd" \
+  -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
+  -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd" \
+  -e "REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt" \
+  -e "REGISTRY_HTTP_TLS_KEY=/certs/domain.key" \
+  registry:2.8.3
+
+# 4. 验证仓库
+curl -u admin:MyRegistryPass123! https://your-registry-ip:5000/v2/_catalog</code></pre>
+            </div>
+
+            <h3>2. 客户端配置（信任私有仓库）</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># 1. 复制证书到客户端
+mkdir -p /etc/docker/certs.d/your-registry-ip:5000
+cp /opt/registry/certs/domain.crt /etc/docker/certs.d/your-registry-ip:5000/ca.crt
+
+# 2. 重启Docker
+systemctl restart docker
+
+# 3. 登录私有仓库
+docker login your-registry-ip:5000
+
+# 4. 推送/拉取镜像
+docker tag nginx:1.24.0 your-registry-ip:5000/nginx:1.24.0
+docker push your-registry-ip:5000/nginx:1.24.0
+docker pull your-registry-ip:5000/nginx:1.24.0</code></pre>
+            </div>
+
+            <h3>3. 仓库管理最佳实践</h3>
+            <ul>
+                <li><strong>权限管控:</strong> 不同团队/项目使用不同账号，最小权限原则</li>
+                <li><strong>镜像清理:</strong> 定期清理过时镜像（保留最近3个版本）
+                    <pre><code># 清理未标记的镜像
+docker exec docker-registry registry garbage-collect /etc/docker/registry/config.yml</code></pre>
+                </li>
+                <li><strong>镜像扫描:</strong> 集成Harbor/Clair做漏洞扫描，禁止有高危漏洞的镜像上线</li>
+                <li><strong>备份策略:</strong> 每日备份registry数据卷，避免数据丢失</li>
+                <li><strong>高可用:</strong> 生产环境用Harbor（企业级仓库），支持集群部署</li>
+            </ul>
+
+            <div class="warning-tip">
+                <strong>⚠️ 仓库安全:</strong>
+                <p>1. 禁止开放私有仓库到公网，仅允许内网访问；<br>
+                2. 必须启用HTTPS和认证，避免镜像被篡改/窃取；<br>
+                3. 定期更换仓库密码，删除离职人员账号；<br>
+                4. 不要将敏感信息（如密钥）打包进镜像，通过配置中心挂载。</p>
+            </div>
+        </section>
+
+        <!-- 生产环境最佳实践 -->
+        <section class="content-section" id="best-practice">
+            <h2>七、生产环境最佳实践（安全/监控/日志/避坑）</h2>
+            
+            <h3>1. 安全加固</h3>
+            <ul>
+                <li><strong>容器安全:</strong>
+                    <ul>
+                        <li>使用非root用户运行容器</li>
+                        <li>禁用容器capabilities（如CAP_SYS_ADMIN）</li>
+                        <li>设置容器只读文件系统（--read-only），仅数据卷可写</li>
+                        <li>启用Docker Content Trust（DCT）验证镜像签名</li>
+                    </ul>
+                </li>
+                <li><strong>宿主机安全:</strong>
+                    <ul>
+                        <li>最小化安装宿主机系统，仅安装Docker必需依赖</li>
+                        <li>禁止宿主机直接运行容器，通过编排工具管理</li>
+                        <li>定期更新Docker版本，修复安全漏洞</li>
+                        <li>配置防火墙，仅开放必要端口</li>
+                    </ul>
+                </li>
+                <li><strong>镜像安全:</strong>
+                    <ul>
+                        <li>仅从可信源拉取镜像（官方/企业私有仓库）</li>
+                        <li>镜像构建后扫描漏洞，高危漏洞必须修复</li>
+                        <li>禁止在镜像中包含密码、密钥等敏感信息</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>2. 监控告警</h3>
+            <ul>
+                <li><strong>容器监控:</strong> 集成Prometheus + Grafana
+                    <pre><code># 部署cAdvisor采集容器指标
+docker run -d \
+  --name cadvisor \
+  --volume=/:/rootfs:ro \
+  --volume=/var/run:/var/run:ro \
+  --volume=/sys:/sys:ro \
+  --volume=/var/lib/docker/:/var/lib/docker:ro \
+  --volume=/dev/disk/:/dev/disk:ro \
+  --publish=8080:8080 \
+  --detach=true \
+  --restart=always \
+  gcr.io/cadvisor/cadvisor:v0.47.0</code></pre>
+                </li>
+                <li><strong>核心监控指标:</strong>
+                    <ul>
+                        <li>容器状态（运行/停止/崩溃）</li>
+                        <li>资源使用率（CPU/内存/磁盘IO/网络IO）</li>
+                        <li>健康检查状态</li>
+                        <li>镜像拉取/推送成功率</li>
+                    </ul>
+                </li>
+                <li><strong>告警规则:</strong>
+                    <ul>
+                        <li>容器崩溃次数≥3次，立即告警</li>
+                        <li>CPU/内存使用率≥80%，持续5分钟告警</li>
+                        <li>磁盘使用率≥85%，告警并触发清理</li>
+                        <li>健康检查失败，立即告警</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>3. 日志管理</h3>
+            <ul>
+                <li><strong>日志收集:</strong> 统一收集到ELK/Loki
+                    <pre><code># Docker配置日志驱动为json-file（基础），或直接对接Elasticsearch
+# 修改daemon.json
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m",
+    "max-file": "3"
+  }
+}</code></pre>
+                </li>
+                <li><strong>日志规范:</strong>
+                    <ul>
+                        <li>日志格式统一（JSON格式，包含时间/级别/服务名/请求ID）</li>
+                        <li>敏感信息脱敏（密码/手机号/身份证号）</li>
+                        <li>按服务/日期分割日志，便于检索</li>
+                    </ul>
+                </li>
+                <li><strong>日志留存:</strong> 生产环境日志留存90天，重要日志备份到对象存储</li>
+            </ul>
+
+            <h3>4. 容灾与备份</h3>
+            <ul>
+                <li><strong>数据备份:</strong>
+                    <ul>
+                        <li>数据卷每日全量备份，增量备份每小时一次</li>
+                        <li>备份文件加密存储，异地备份</li>
+                        <li>每周验证备份恢复，确保可用</li>
+                    </ul>
+                </li>
+                <li><strong>容灾策略:</strong>
+                    <ul>
+                        <li>关键服务多节点部署，避免单点故障</li>
+                        <li>跨可用区部署，可用区故障时自动切换</li>
+                        <li>制定故障恢复预案，定期演练</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>5. 生产环境避坑清单</h3>
+            <div class="warning-tip">
+                <strong>🚫 绝对禁止:</strong>
+                <ul style="margin-top: 10px;">
+                    <li>生产环境使用latest标签镜像</li>
+                    <li>容器内存储重要数据（未挂载数据卷）</li>
+                    <li>赋予容器root权限（--privileged=true）</li>
+                    <li>宿主机和容器共享网络命名空间（--net=host）</li>
+                    <li>硬编码密码/密钥到Dockerfile/Compose文件</li>
+                    <li>不设置资源限制，导致服务抢占资源</li>
+                    <li>关闭Docker日志限制，导致磁盘占满</li>
+                    <li>生产环境直接修改容器内配置（未通过镜像/配置中心）</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 总结与进阶方向 -->
+        <section class="content-section" id="summary">
+            <h2>八、总结与进阶方向</h2>
+            
+            <h3>1. 核心总结</h3>
+            <p>Docker容器化的核心价值是<strong>环境一致性、轻量级隔离、快速部署</strong>，解决了传统部署的效率低、环境不一致、扩缩容难等痛点。生产环境落地需遵循：</p>
+            <ul>
+                <li>镜像标准化：遵循多阶段构建、轻量级、非root、无敏感信息</li>
+                <li>部署规范化：使用Compose编排，设置健康检查、重启策略、资源限制</li>
+                <li>数据持久化：所有业务数据通过数据卷/外部存储挂载，禁止容器内存储</li>
+                <li>安全最小化：非root运行、禁用高危权限、镜像扫描、网络隔离</li>
+                <li>可观测性：完善监控、日志、告警，确保问题可发现、可定位</li>
+            </ul>
+
+            <h3>2. 进阶方向</h3>
+            <ul>
+                <li><strong>容器编排进阶:</strong> 从Docker Compose（单机）→ Kubernetes（K8s，集群），支持大规模、高可用部署</li>
+                <li><strong>CI/CD集成:</strong> 结合Jenkins/GitLab CI，实现代码提交→镜像构建→测试→部署全自动化</li>
+                <li><strong>服务网格:</strong> 集成Istio，实现服务治理（流量控制、熔断、链路追踪）</li>
+                <li><strong>云原生存储:</strong> 使用Rook/Ceph提供分布式存储，适配容器动态扩缩容</li>
+                <li><strong>Serverless容器:</strong> 基于K8s+Knative，实现按需付费、自动扩缩容的无服务架构</li>
+            </ul>
+
+            <h3>3. 最后建议</h3>
+            <p>容器化不是目的，而是手段。落地Docker的核心是<strong>标准化、自动化、可运维化</strong>，避免为了容器化而容器化。建议从小规模服务（如内部工具、非核心API）开始试点，积累经验后再推广到核心业务，同时建立完善的运维规范和故障处理流程，确保容器化落地的稳定性和可持续性。</p>
+        </section>
+    </main>
+
+    <!-- 回到顶部按钮 -->
+    <div class="back-to-top" onclick="backToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- JavaScript功能实现 -->
+    <script>
+        // 主题切换功能（修复版）
+        function toggleTheme() {
+            const body = document.body;
+            // 切换主题类
+            body.classList.toggle('dark');
+            body.classList.toggle('light');
+            // 持久化主题到本地存储
+            const currentTheme = body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('docker_blog_theme', currentTheme);
+        }
+
+        // 页面加载时恢复保存的主题
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('docker_blog_theme') || 'light';
+            document.body.className = savedTheme;
+
+            // 回到顶部按钮显示/隐藏
+            window.addEventListener('scroll', () => {
+                const backToTopBtn = document.querySelector('.back-to-top');
+                if (window.scrollY > 300) {
+                    backToTopBtn.classList.add('visible');
+                } else {
+                    backToTopBtn.classList.remove('visible');
+                }
+            });
+        });
+
+        // 复制代码功能（可用版）
+        function copyCode(btn) {
+            // 获取代码块内容
+            const codeContainer = btn.parentElement;
+            const preElement = codeContainer.querySelector('pre');
+            const codeText = preElement.textContent.trim();
+
+            // 复制到剪贴板
+            navigator.clipboard.writeText(codeText).then(() => {
+                // 按钮状态反馈
+                btn.textContent = '已复制 ✔';
+                btn.classList.add('copied');
+                // 恢复原文本
+                setTimeout(() => {
+                    btn.textContent = '复制代码';
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                btn.textContent = '复制失败 ❌';
+                setTimeout(() => {
+                    btn.textContent = '复制代码';
+                }, 2000);
+            });
+        }
+
+        // 回到顶部功能
+        function backToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 平滑滚动到锚点
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    // 计算导航栏高度，避免被遮挡
+                    const navbarHeight = document.querySelector('.navbar').offsetHeight;
+                    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight - 20;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
