@@ -909,15 +909,176 @@
             <p>内容分发网络（CDN）通过将网站内容缓存到全球各地的边缘节点，使用户可以从最近的节点获取所需资源，从而显著减少延迟，提升页面加载速度。</p>
             
             <div class="architecture-diagram">
-                <h4>CDN工作流程示意图</h4>
-                <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 8px; margin: 15px 0;">
-                    <div style="display: inline-block; text-align: left; font-family: monospace; line-height: 2;">
-                        <div>1. 用户访问 www.example.com</div>
-                        <div>2. DNS解析指向最近的CDN节点</div>
-                        <div>3. CDN节点检查缓存内容</div>
-                        <div>4. 缓存命中 → 直接返回内容</div>
-                        <div>5. 缓存未命中 → 回源获取并缓存</div>
-                        <div>6. 返回内容给用户</div>
+<h4>CDN工作流程示意图</h4>
+<div class="cdn-workflow-container">
+    <div class="cdn-workflow">
+        <div class="cdn-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <span class="step-icon">👤</span>
+                <div class="step-text">用户访问 <span class="highlight">www.example.com</span></div>
+            </div>
+        </div>
+        
+        <div class="cdn-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <span class="step-icon">🌐</span>
+                <div class="step-text">DNS解析指向最近的CDN节点</div>
+            </div>
+        </div>
+        
+        <div class="cdn-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <span class="step-icon">🔍</span>
+                <div class="step-text">CDN节点检查缓存内容</div>
+            </div>
+        </div>
+        
+        <div class="cdn-step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <span class="step-icon success">✅</span>
+                <div class="step-text">
+                    <span class="status-label success">缓存命中</span>
+                    <span class="arrow">→</span>
+                    直接返回内容
+                </div>
+            </div>
+        </div>
+        
+        <div class="cdn-step">
+            <div class="step-number">5</div>
+            <div class="step-content">
+                <span class="step-icon warning">⚠️</span>
+                <div class="step-text">
+                    <span class="status-label warning">缓存未命中</span>
+                    <span class="arrow">→</span>
+                    回源获取并缓存
+                </div>
+            </div>
+        </div>
+        
+        <div class="cdn-step">
+            <div class="step-number">6</div>
+            <div class="step-content">
+                <span class="step-icon">📦</span>
+                <div class="step-text">返回内容给用户</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.cdn-workflow-container {
+    text-align: center;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.cdn-workflow {
+    display: inline-block;
+    text-align: left;
+    width: 100%;
+    max-width: 500px;
+}
+
+.cdn-step {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 10px 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-left: 3px solid #3b82f6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: all 0.2s ease;
+}
+
+.cdn-step:hover {
+    transform: translateX(3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cdn-step:last-child {
+    margin-bottom: 0;
+}
+
+.step-number {
+    width: 28px;
+    height: 28px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.step-content {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.step-icon {
+    font-size: 20px;
+    margin-right: 10px;
+    width: 30px;
+    text-align: center;
+}
+
+.step-icon.success {
+    color: #10b981;
+}
+
+.step-icon.warning {
+    color: #f59e0b;
+}
+
+.step-text {
+    font-size: 15px;
+    line-height: 1.5;
+    color: #334155;
+}
+
+.highlight {
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.status-label {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.status-label.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.status-label.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.arrow {
+    margin: 0 8px;
+    color: #94a3b8;
+    font-weight: bold;
+}
+</style>
                     </div>
                 </div>
             </div>
