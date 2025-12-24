@@ -311,6 +311,19 @@
             transform: translateX(4px);
         }
 
+        /* 目录激活状态 */
+        .toc li a.active {
+            color: #f97316;
+            background: rgba(249, 115, 22, 0.1);
+            font-weight: 600;
+            transform: translateX(8px);
+        }
+
+        body.dark .toc li a.active {
+            color: #fb923c;
+            background: rgba(251, 146, 60, 0.1);
+        }
+
         /* 内容区块 */
         .content-section {
             border-radius: 12px;
@@ -442,6 +455,17 @@
             color: #f87171;
             background: #1e293b;
         }
+
+        /* 代码语法高亮 */
+        .keyword { color: #f97316; font-weight: bold; }
+        .string { color: #10b981; }
+        .constant { color: #8b5cf6; }
+        .comment { color: #6b7280; font-style: italic; }
+
+        body.dark .keyword { color: #fb923c; }
+        body.dark .string { color: #34d399; }
+        body.dark .constant { color: #a78bfa; }
+        body.dark .comment { color: #94a3b8; }
 
         .copy-btn {
             position: absolute;
@@ -1307,8 +1331,8 @@ if __name__ == "__main__":
     )
     
     # 渲染完成后，可直接调用之前的批量上传函数部署到服务器
-    # batch_upload("production", "./nginx.conf", "/usr/local/nginx/conf/nginx.conf")
-                                </div>
+    # batch_upload("production", "./nginx.conf", "/usr/local/nginx/conf/nginx.conf")</code></pre>
+            </div>
 
             <h3>2. 多环境配置隔离</h3>
             <div class="code-container">
@@ -1412,8 +1436,7 @@ if __name__ == "__main__":
     #     template_path="nginx_template.conf",
     #     config_path=f"configs/{env}.yaml",
     #     output_path=f"nginx_{env}.conf"
-    # )
-</code></pre>
+    # )</code></pre>
             </div>
 
             <h3>3. 命令行参数动态传参</h3>
@@ -1508,7 +1531,7 @@ def main():
     
     elif args.action == "backup":
         print(f"执行 {args.env} 环境备份任务...")
-        # 备份逻辑（省略具体实现）
+        # 备份逻辑（省略具体实现")
 
 if __name__ == "__main__":
     try:
@@ -1520,8 +1543,7 @@ if __name__ == "__main__":
 # 命令行调用示例：
 # python deploy_with_args.py --env production --action install --threads 15
 # python deploy_with_args.py --env test --action deploy --dry-run
-# python deploy_with_args.py --env production --action check --servers 192.168.1.101 192.168.1.102
-</code></pre>
+# python deploy_with_args.py --env production --action check --servers 192.168.1.101 192.168.1.102</code></pre>
             </div>
         </section>
 
@@ -1605,8 +1627,7 @@ if __name__ == "__main__":
         result = execute_command_with_retry(server, "systemctl restart nginx")
         print(f"✅  {server['host']} 命令执行成功: {result}")
     except Exception as e:
-        print(f"❌  {server['host']} 命令执行最终失败: {str(e)}")
-</code></pre>
+        print(f"❌  {server['host']} 命令执行最终失败: {str(e)}")</code></pre>
             </div>
 
             <h3>2. 异常分类处理与告警</h3>
@@ -1726,8 +1747,7 @@ if __name__ == "__main__":
         # 模拟SSH连接失败
         raise SSHConnectError("连接超时（服务器可能宕机）")
     except DeployError as e:
-        handle_deploy_exception(server, e, alert_manager)
-</code></pre>
+        handle_deploy_exception(server, e, alert_manager)</code></pre>
             </div>
         </section>
 
@@ -1819,8 +1839,7 @@ if __name__ == "__main__":
             operation="install_nginx",
             status="failed",
             details={"error": str(e), "retry_count": 3}
-        )
-</code></pre>
+        )</code></pre>
             </div>
 
             <h3>2. 实时进度监控（Web可视化）</h3>
@@ -2008,8 +2027,7 @@ if __name__ == "__main__":
     <div id="servers"></div>
 </body>
 </html>
-'''
-</code></pre>
+'''</code></pre>
             </div>
         </section>
 
@@ -2228,130 +2246,86 @@ class NginxDeployer:
         success_count = sum(1 for r in deploy_results.values() if r["status"] == "success")
         failed_count = len(deploy_results) - success_count
         
-logger.info(f"部署完成 | 总计: {len(deploy_results)} 台 | 成功: {success_count} | 失败: {failed_count}")
-print(f"\n===== 部署结果汇总 ({self.env}环境) =====")
-print(f"总服务器数: {len(self.servers)} 台")
-print(f"✅ 成功部署: {success_count} 台")
-print(f"❌ 部署失败: {failed_count} 台")
+        logger.info(f"部署完成 | 总计: {len(deploy_results)} 台 | 成功: {success_count} | 失败: {failed_count}")
+        print(f"\n===== 部署结果汇总 ({self.env}环境) =====")
+        print(f"总服务器数: {len(self.servers)} 台")
+        print(f"✅ 成功部署: {success_count} 台")
+        print(f"❌ 部署失败: {failed_count} 台")
 
-# 输出成功列表
-if success_count > 0:
-    print("\n【成功服务器列表】:")
-    for host in [k for k, v in deploy_results.items() if v["status"] == "success"]:
-        print(f"  - {host}")
+        # 输出成功列表
+        if success_count > 0:
+            print("\n【成功服务器列表】:")
+            for host in [k for k, v in deploy_results.items() if v["status"] == "success"]:
+                print(f"  - {host}")
 
-# 输出失败详情
-if failed_count > 0:
-    print("\n【失败服务器详情】:")
-    for host, result in deploy_results.items():
-        if result["status"] == "failed":
-            print(f"\n  🚨 {host}:")
-            print(f"     错误原因: {result['error']}")
-            # 如果有命令执行输出，补充输出
-            if "output" in result:
-                for cmd, cmd_result in result["output"].items():
-                    if cmd_result.get("stderr"):
-                        print(f"     命令: {cmd}")
-                        print(f"     错误输出: {cmd_result['stderr'][:200]}...")  # 截断过长输出
+        # 输出失败详情
+        if failed_count > 0:
+            print("\n【失败服务器详情】:")
+            for host, result in deploy_results.items():
+                if result["status"] == "failed":
+                    print(f"\n  🚨 {host}:")
+                    print(f"     错误原因: {result['error']}")
+                    # 如果有命令执行输出，补充输出
+                    if "output" in result:
+                        for cmd, cmd_result in result["output"].items():
+                            if cmd_result.get("stderr"):
+                                print(f"     命令: {cmd}")
+                                print(f"     错误输出: {cmd_result['stderr'][:200]}...")  # 截断过长输出
 
-# 生成部署报告文件
-report_path = f"./deploy_reports/nginx_deploy_{self.env}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-os.makedirs("./deploy_reports", exist_ok=True)
+        # 生成部署报告文件
+        report_path = f"./deploy_reports/nginx_deploy_{self.env}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        os.makedirs("./deploy_reports", exist_ok=True)
 
-with open(report_path, "w", encoding="utf-8") as f:
-    f.write(f"===== Nginx批量部署报告 ({self.env}环境) =====\n")
-    f.write(f"部署时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-    f.write(f"总服务器数: {len(self.servers)}\n")
-    f.write(f"成功数: {success_count}\n")
-    f.write(f"失败数: {failed_count}\n\n")
-    
-    f.write("【成功服务器】:\n")
-    for host in [k for k, v in deploy_results.items() if v["status"] == "success"]:
-        f.write(f"  - {host}\n")
-    
-    f.write("\n【失败服务器】:\n")
-    for host, result in deploy_results.items():
-        if result["status"] == "failed":
-            f.write(f"\n  {host}:\n")
-            f.write(f"    错误: {result['error']}\n")
-
-logger.info(f"部署报告已生成: {report_path}")
-print(f"\n📄 部署报告已保存至: {report_path}")
-
-# 失败数超过阈值时发送告警（示例：邮件/钉钉/企业微信）
-if failed_count > 0 and failed_count / len(self.servers) > 0.1:  # 失败率超10%告警
-    self.send_alert(deploy_results, success_count, failed_count)
-    logger.warning(f"部署失败率超过10%，已发送告警通知")
-    print("\n⚠️  部署失败率超过10%，已发送告警通知！")
-
-return {
-    "total": len(self.servers),
-    "success": success_count,
-    "failed": failed_count,
-    "failed_hosts": [k for k, v in deploy_results.items() if v["status"] == "failed"],
-    "report_path": report_path
-}
-
-def send_alert(self, deploy_results, success_count, failed_count):
-    """发送部署告警（以钉钉为例）"""
-    try:
-        import requests
-        # 钉钉机器人webhook地址（替换为实际地址）
-        webhook_url = os.getenv("DINGTALK_WEBHOOK")
-        if not webhook_url:
-            logger.warning("未配置钉钉webhook，跳过告警发送")
-            return
-        
-        failed_hosts = [k for k, v in deploy_results.items() if v["status"] == "failed"]
-        alert_msg = {
-            "msgtype": "markdown",
-            "markdown": {
-                "title": f"Nginx批量部署告警 ({self.env}环境)",
-                "text": f"""### Nginx批量部署告警
-> 环境: {self.env}
-> 部署时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-> 总服务器数: {len(self.servers)}
-> 成功数: {success_count}
-> 失败数: {failed_count}
-> 失败率: {failed_count/len(self.servers)*100:.1f}%
-
-#### 失败服务器列表:
-{chr(10).join([f"- {host}" for host in failed_hosts])}
-
-#### 建议操作:
-1. 检查失败服务器网络连通性
-2. 核对服务器SSH认证信息
-3. 查看部署报告获取详细错误日志
-"""
-            }
-        }
-        
-        response = requests.post(webhook_url, json=alert_msg, timeout=10)
-        if response.status_code == 200:
-            logger.info("钉钉告警发送成功")
-        else:
-            logger.error(f"钉钉告警发送失败: {response.text}")
-                except Exception as e:
-                    logger.error(f"发送告警异常: {str(e)}")
+        with open(report_path, "w", encoding="utf-8") as f:
+            f.write(f"===== Nginx批量部署报告 ({self.env}环境) =====\n")
+            f.write(f"部署时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"总服务器数: {len(self.servers)}\n")
+            f.write(f"成功数: {success_count}\n")
+            f.write(f"失败数: {failed_count}\n\n")
             
-            return deploy_results
-        
-        def send_alert(self, deploy_results, success_count, failed_count):
-            """发送部署告警（以钉钉为例）"""
-            try:
-                import requests
-                # 钉钉机器人webhook地址（替换为实际地址）
-                webhook_url = os.getenv("DINGTALK_WEBHOOK")
-                if not webhook_url:
-                    logger.warning("未配置钉钉webhook，跳过告警发送")
-                    return
-                
-                failed_hosts = [k for k, v in deploy_results.items() if v["status"] == "failed"]
-                alert_msg = {
-                    "msgtype": "markdown",
-                    "markdown": {
-                        "title": f"Nginx批量部署告警 ({self.env}环境)",
-                        "text": f"""### Nginx批量部署告警
+            f.write("【成功服务器】:\n")
+            for host in [k for k, v in deploy_results.items() if v["status"] == "success"]:
+                f.write(f"  - {host}\n")
+            
+            f.write("\n【失败服务器】:\n")
+            for host, result in deploy_results.items():
+                if result["status"] == "failed":
+                    f.write(f"\n  {host}:\n")
+                    f.write(f"    错误: {result['error']}\n")
+
+        logger.info(f"部署报告已生成: {report_path}")
+        print(f"\n📄 部署报告已保存至: {report_path}")
+
+        # 失败数超过阈值时发送告警（示例：邮件/钉钉/企业微信）
+        if failed_count > 0 and failed_count / len(self.servers) > 0.1:  # 失败率超10%告警
+            self.send_alert(deploy_results, success_count, failed_count)
+            logger.warning(f"部署失败率超过10%，已发送告警通知")
+            print("\n⚠️  部署失败率超过10%，已发送告警通知！")
+
+        return {
+            "total": len(self.servers),
+            "success": success_count,
+            "failed": failed_count,
+            "failed_hosts": [k for k, v in deploy_results.items() if v["status"] == "failed"],
+            "report_path": report_path
+        }
+    
+    def send_alert(self, deploy_results, success_count, failed_count):
+        """发送部署告警（以钉钉为例）"""
+        try:
+            import requests
+            # 钉钉机器人webhook地址（替换为实际地址）
+            webhook_url = os.getenv("DINGTALK_WEBHOOK")
+            if not webhook_url:
+                logger.warning("未配置钉钉webhook，跳过告警发送")
+                return
+            
+            failed_hosts = [k for k, v in deploy_results.items() if v["status"] == "failed"]
+            alert_msg = {
+                "msgtype": "markdown",
+                "markdown": {
+                    "title": f"Nginx批量部署告警 ({self.env}环境)",
+                    "text": f"""### Nginx批量部署告警
 > 环境: {self.env}
 > 部署时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 > 总服务器数: {len(self.servers)}
@@ -2367,16 +2341,16 @@ def send_alert(self, deploy_results, success_count, failed_count):
 2. 核对服务器SSH认证信息
 3. 查看部署报告获取详细错误日志
 """
-                    }
                 }
-                
-                response = requests.post(webhook_url, json=alert_msg, timeout=10)
-                if response.status_code == 200:
-                    logger.info("钉钉告警发送成功")
-                else:
-                    logger.error(f"钉钉告警发送失败: {response.text}")
-            except Exception as e:
-                logger.error(f"发送告警异常: {str(e)}")
+            }
+            
+            response = requests.post(webhook_url, json=alert_msg, timeout=10)
+            if response.status_code == 200:
+                logger.info("钉钉告警发送成功")
+            else:
+                logger.error(f"钉钉告警发送失败: {response.text}")
+        except Exception as e:
+            logger.error(f"发送告警异常: {str(e)}")
 
 # 使用示例
 if __name__ == "__main__":
@@ -2389,8 +2363,7 @@ if __name__ == "__main__":
     # 打印最终统计
     print(f"\n🎉 部署完成！成功率: {results['success']/results['total']*100:.1f}%")
     if results['failed'] > 0:
-        print(f"⚠️  需要手动处理的失败服务器: {', '.join(results['failed_hosts'])}")
-</code></pre>
+        print(f"⚠️  需要手动处理的失败服务器: {', '.join(results['failed_hosts'])}")</code></pre>
             </div>
 
             <h3>2. 部署流程对比表</h3>
@@ -2617,8 +2590,7 @@ if __name__ == "__main__":
     # loop = asyncio.get_event_loop()
     # results = loop.run_until_complete(
     #     async_deployer.batch_execute_async(servers, ["hostname", "date"])
-    # )
-</code></pre>
+    # )</code></pre>
             </div>
 
             <div class="warning-tip">
@@ -2899,16 +2871,6 @@ auto-deploy-project/
                 block.innerHTML = highlighted;
             });
         }
-
-        // 添加一些简单的CSS高亮样式
-        const style = document.createElement('style');
-        style.textContent = `
-            .keyword { color: #f97316; font-weight: bold; }
-            .string { color: #10b981; }
-            .constant { color: #8b5cf6; }
-            .comment { color: #6b7280; font-style: italic; }
-        `;
-        document.head.appendChild(style);
 
         // 页面加载完成后执行代码高亮
         window.addEventListener('load', highlightCode);
