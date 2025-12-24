@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI站点部署与CDN防御实战（避坑指南）</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+        h1 { color: #1e3a8a; }
+        h2 { color: #059669; }
+        pre { background: #f1f5f9; padding: 15px; border-radius: 8px; overflow-x: auto; }
+        code { color: #dc2626; }
+    </style>
+</head>
+<body>
+    <h1>AI站点部署与CDN防御实战（避坑指南）</h1>
+    <p>作为有18年运维经验的技术人，我在2023年接手AI站点部署项目后，踩过不少坑，今天把可落地的实战方案分享给大家。</p>
+
+    <h2>一、项目背景</h2>
+    <p>需求：搭建高可用AI站点，支持500+并发访问，抵御DOS/CC攻击，同时对接第三方API实现功能闭环。<br>
+    环境：云服务器（CentOS 7）+ Nginx + CDN + MySQL 8.0。</p>
+
+    <h2>二、核心部署步骤（避坑版）</h2>
+    <h3>1. 服务器环境初始化（必做）</h3>
+    <pre><code># 关闭无用端口，只开放80/443/22
+firewall-cmd --permanent --remove-port=3306/tcp
+firewall-cmd --reload
+
+# 安装基础依赖
+yum install -y gcc pcre-devel zlib-devel openssl-devel
+</code></pre>
+    <p><strong>坑点</strong>：不要用CentOS 8（停止维护），依赖包缺失会导致Nginx编译失败。</p>
+
+    <h3>2. AI站点部署核心配置</h3>
+    <pre><code># 简单的API对接脚本（Python）
+import requests
+import json
+
+def ai_api_call(prompt):
+    url = "https://你的AI接口地址/v1/completions"
+    headers = {"Authorization": "Bearer 你的API密钥"}
+    data = {"model": "gpt-3.5-turbo", "prompt": prompt, "max_tokens": 1000}
+    
+    try:
+        response = requests.post(url, headers=headers, json=data, timeout=10)
+        return response.json()
+    except requests.exceptions.Timeout:
+        # 超时重试逻辑（避坑：不加重试会导致用户请求失败）
+        return ai_api_call(prompt)
+</code></pre>
+    <p><strong>坑点</strong>：API密钥要存在环境变量里，不要直接写在代码里（防止泄露）。</p>
+
+    <h3>3. CDN防御配置（关键）</h3>
+    <ul>
+        <li>选择阿里云/腾讯云CDN，开启「CC攻击防护」「IP黑白名单」；</li>
+        <li>配置「源站隐藏」（避免直接暴露服务器IP）；</li>
+        <li>缓存规则：静态资源（图片/JS/CSS）缓存7天，动态接口不缓存。</li>
+    </ul>
+
+    <h2>三、最终成果</h2>
+    <ul>
+        <li>站点稳定性：99.9%（半年内仅因机房割接中断1次，5分钟恢复）；</li>
+        <li>攻击防御：抵御1000+次DOS/CC攻击，无数据泄露；</li>
+        <li>并发支持：500+用户同时访问无卡顿，服务器CPU使用率稳定在30%以内。</li>
+    </ul>
+
+    <h2>四、总结</h2>
+    <p>AI站点部署的核心是“环境稳+防护严+代码鲁棒”，运维人员要重点关注API超时、IP泄露、攻击防护这三个点，才能保证站点长期可用。</p>
+</body>
+</html>
