@@ -1,259 +1,454 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI站点部署与CDN防御实战（避坑指南）</title>
-    <!-- 预加载高端字体 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <!-- 引入图标库（返回按钮图标） -->
+    <title>AI站点部署与CDN防御实战 - 何哥的博客</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* 全局变量：高端低饱和色系 */
-        :root {
-            --primary-navy: #162d56;      /* 主深蓝（高端沉稳） */
-            --primary-teal: #068975;      /* 主青绿（运维专业感） */
-            --warning-amber: #e67e22;     /* 警告色（低饱和） */
-            --danger-red: #dc3545;        /* 代码红色 */
-            --bg-light: #f9fafb;          /* 页面背景 */
-            --bg-card: #ffffff;           /* 卡片背景 */
-            --bg-code: #f1f5f9;           /* 代码背景 */
-            --text-primary: #1e293b;      /* 主文本 */
-            --text-secondary: #64748b;    /* 次要文本 */
-            --border-light: #e2e8f0;      /* 边框色 */
-            --shadow-xs: 0 1px 2px rgba(0,0,0,0.03);
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.08);
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --transition: all 0.2s ease-in-out;
-        }
-
-        /* 全局重置：保证跨浏览器一致性 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        html {
-            scroll-behavior: smooth; /* 平滑滚动 */
-            font-size: 16px;
-        }
-
         body {
-            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 24px;
-            line-height: 1.75;
-            color: var(--text-primary);
-            background-color: var(--bg-light);
-            padding-bottom: 80px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+            line-height: 1.7;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        /* 顶部导航栏：固定+磨砂玻璃 */
-        .top-nav {
-            position: sticky;
+        body.light {
+            background-color: #f8fafc;
+            color: #1f2937;
+        }
+
+        body.dark {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
             top: 0;
-            z-index: 999;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px 0;
-            margin-bottom: 32px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-light);
-            border-radius: 0 0 var(--radius-md) var(--radius-md);
-            box-shadow: var(--shadow-xs);
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
         }
 
-        /* 高端返回按钮：磨砂+渐变+微交互 */
-        .back-home-btn {
+        body.light .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .navbar {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        body.light .nav-menu a {
+            color: #4b5563;
+        }
+
+        body.dark .nav-menu a {
+            color: #cbd5e1;
+        }
+
+        body.light .nav-menu a:hover {
+            color: #3b82f6;
+            background: #f3f4f6;
+        }
+
+        body.dark .nav-menu a:hover {
+            color: #60a5fa;
+            background: #1e293b;
+        }
+
+        .theme-toggle {
+            width: 50px;
+            height: 26px;
+            border-radius: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        body.light .theme-toggle {
+            background: #e5e7eb;
+        }
+
+        body.dark .theme-toggle {
+            background: #3b82f6;
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            background: white;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark .theme-toggle::before {
+            transform: translateX(24px);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            max-width: 900px;
+            margin: 100px auto 60px;
+            padding: 0 20px;
+        }
+
+        /* 返回按钮 */
+        .back-button {
             display: inline-flex;
             align-items: center;
             gap: 8px;
             padding: 10px 20px;
-            background: linear-gradient(135deg, var(--primary-navy), var(--primary-teal));
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             text-decoration: none;
             border-radius: 50px;
             font-weight: 500;
             font-size: 14px;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            border: none;
-            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .back-home-btn:hover {
+        .back-button:hover {
             transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            opacity: 0.95;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .back-home-btn:active {
-            transform: translateY(0);
-            box-shadow: var(--shadow-xs);
+        /* 文章头部 */
+        .article-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid;
         }
 
-        .back-home-btn i {
+        body.light .article-header {
+            border-color: #e5e7eb;
+        }
+
+        body.dark .article-header {
+            border-color: #334155;
+        }
+
+        .article-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        body.light .article-title {
+            color: #1f2937;
+        }
+
+        body.dark .article-title {
+            color: #f1f5f9;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+        }
+
+        body.light .article-meta {
+            color: #6b7280;
+        }
+
+        body.dark .article-meta {
+            color: #94a3b8;
+        }
+
+        .article-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .category-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        body.light .category-badge {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        body.dark .category-badge {
+            background: #1e3a8a;
+            color: #93c5fd;
+        }
+
+        .article-intro {
             font-size: 16px;
-        }
-
-        /* 头部标题区域 */
-        .header-content {
-            margin-bottom: 36px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        h1 {
-            color: var(--primary-navy);
-            font-size: clamp(1.8rem, 5vw, 2.8rem);
-            font-weight: 700;
-            margin-bottom: 16px;
-            line-height: 1.25;
-        }
-
-        .header-desc {
-            font-size: 16px;
-            color: var(--text-secondary);
             line-height: 1.8;
-            max-width: 700px;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 40px;
         }
 
-        /* 目录导航：高端卡片样式 */
+        body.light .article-intro {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        body.dark .article-intro {
+            background: #1e293b;
+            color: #cbd5e1;
+        }
+
+        /* 目录 */
         .toc {
-            background: var(--bg-card);
+            border-radius: 12px;
             padding: 24px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 36px;
-            border-left: 4px solid var(--primary-teal);
+            margin-bottom: 40px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        body.light .toc {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .toc {
+            background: #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .toc h4 {
             font-size: 18px;
             font-weight: 600;
-            color: var(--primary-navy);
             margin-bottom: 16px;
+        }
+
+        body.light .toc h4 {
+            color: #1f2937;
+        }
+
+        body.dark .toc h4 {
+            color: #f1f5f9;
         }
 
         .toc ul {
             list-style: none;
             display: grid;
-            gap: 12px;
+            gap: 10px;
         }
 
         .toc li a {
-            color: var(--text-secondary);
             text-decoration: none;
-            font-size: 15px;
             padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            transition: var(--transition);
-            display: inline-block;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: block;
         }
 
-        .toc li a:hover {
-            color: var(--primary-teal);
-            background-color: rgba(6, 137, 117, 0.05);
+        body.light .toc li a {
+            color: #4b5563;
+        }
+
+        body.dark .toc li a {
+            color: #cbd5e1;
+        }
+
+        body.light .toc li a:hover {
+            color: #3b82f6;
+            background: #f3f4f6;
             transform: translateX(4px);
         }
 
-        /* 主内容容器：网格布局+统一间距 */
-        main {
-            display: grid;
-            gap: 32px;
+        body.dark .toc li a:hover {
+            color: #60a5fa;
+            background: #0f172a;
+            transform: translateX(4px);
         }
 
-        /* 内容板块：高端卡片 */
+        /* 内容区块 */
         .content-section {
-            background: var(--bg-card);
-            padding: 32px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        body.light .content-section {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .content-section {
+            background: #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .content-section:hover {
-            box-shadow: var(--shadow-md);
             transform: translateY(-2px);
         }
 
-        /* 标题层级：严格对齐+统一间距 */
+        body.light .content-section:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark .content-section:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
         h2 {
-            color: var(--primary-teal);
-            font-size: clamp(1.4rem, 3vw, 2rem);
-            font-weight: 600;
-            margin-bottom: 24px;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
             padding-bottom: 12px;
-            border-bottom: 2px solid rgba(6, 137, 117, 0.1);
+            border-bottom: 2px solid;
+        }
+
+        body.light h2 {
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        body.dark h2 {
+            color: #60a5fa;
+            border-color: rgba(96, 165, 250, 0.2);
         }
 
         h3 {
-            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            font-size: 20px;
             font-weight: 600;
-            color: var(--primary-navy);
             margin: 24px 0 16px;
         }
 
-        /* 文本样式：规整排版 */
+        body.light h3 {
+            color: #1f2937;
+        }
+
+        body.dark h3 {
+            color: #f1f5f9;
+        }
+
         p {
             margin-bottom: 16px;
-            color: var(--text-primary);
             font-size: 15px;
             line-height: 1.8;
         }
 
-        strong {
-            font-weight: 600;
-            color: var(--primary-navy);
-        }
-
-        /* 列表样式：整洁对齐 */
         ul {
             margin: 16px 0 16px 24px;
             line-height: 1.8;
         }
 
         li {
-            margin-bottom: 12px;
-            color: var(--text-primary);
+            margin-bottom: 10px;
             font-size: 15px;
         }
 
-        /* 代码块：高端样式+复制按钮优化 */
+        strong {
+            font-weight: 600;
+        }
+
+        body.light strong {
+            color: #1f2937;
+        }
+
+        body.dark strong {
+            color: #f1f5f9;
+        }
+
+        /* 代码块 */
         .code-container {
             position: relative;
             margin: 20px 0;
-            border-radius: var(--radius-sm);
+            border-radius: 8px;
             overflow: hidden;
         }
 
         pre {
-            background: var(--bg-code);
             padding: 24px;
             overflow-x: auto;
-            font-family: 'Roboto Mono', monospace;
+            font-family: 'Monaco', 'Courier New', monospace;
             font-size: 14px;
             line-height: 1.6;
-            border-left: 4px solid var(--primary-teal);
+            border-left: 4px solid #3b82f6;
+        }
+
+        body.light pre {
+            background: #f1f5f9;
+        }
+
+        body.dark pre {
+            background: #0f172a;
         }
 
         code {
-            color: var(--danger-red);
-            font-family: 'Roboto Mono', monospace;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
             padding: 2px 6px;
             border-radius: 4px;
-            background: var(--bg-code);
-            font-size: 14px;
+        }
+
+        body.light code {
+            color: #dc2626;
+            background: #f1f5f9;
+        }
+
+        body.dark code {
+            color: #f87171;
+            background: #1e293b;
         }
 
         .copy-btn {
@@ -261,60 +456,54 @@
             top: 12px;
             right: 12px;
             padding: 8px 16px;
-            background: var(--primary-teal);
+            background: #3b82f6;
             color: white;
             border: none;
-            border-radius: var(--radius-sm);
+            border-radius: 8px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 500;
-            transition: var(--transition);
+            transition: all 0.3s;
         }
 
         .copy-btn:hover {
-            background: #057865;
+            background: #2563eb;
         }
 
         .copy-btn.copied {
             background: #10b981;
         }
 
-        /* 坑点提示：高端警告样式 */
+        /* 警告提示 */
         .warning-tip {
-            background: rgba(230, 126, 34, 0.05);
-            border-left: 4px solid var(--warning-amber);
             padding: 16px 20px;
             margin: 20px 0;
-            border-radius: var(--radius-sm);
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        body.light .warning-tip {
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        body.dark .warning-tip {
+            background: rgba(245, 158, 11, 0.15);
         }
 
         .warning-tip strong {
-            color: var(--warning-amber);
+            color: #f59e0b;
             display: block;
             margin-bottom: 8px;
-            font-size: 15px;
         }
 
-        /* 响应式适配：全端整洁 */
+        /* 响应式 */
         @media (max-width: 768px) {
-            .top-nav {
-                padding: 12px 0;
-                margin-bottom: 24px;
+            .nav-menu {
+                display: none;
             }
 
-            .back-home-btn {
-                padding: 8px 16px;
-                font-size: 13px;
-            }
-
-            .header-content {
-                margin-bottom: 24px;
-                padding-bottom: 16px;
-            }
-
-            .toc {
-                padding: 20px;
-                margin-bottom: 24px;
+            .article-title {
+                font-size: 28px;
             }
 
             .content-section {
@@ -326,83 +515,108 @@
                 font-size: 13px;
             }
 
-            h1 {
-                font-size: clamp(1.6rem, 5vw, 2.2rem);
-            }
-
-            h2 {
-                font-size: clamp(1.2rem, 3vw, 1.6rem);
-                margin-bottom: 16px;
-            }
-
-            h3 {
-                font-size: clamp(1rem, 2vw, 1.2rem);
-                margin: 16px 0 12px;
+            .copy-btn {
+                padding: 6px 12px;
+                font-size: 12px;
             }
         }
 
         @media (max-width: 480px) {
-            body {
+            .main-content {
                 padding: 0 16px;
-            }
-
-            .content-section {
-                padding: 16px;
             }
 
             .toc {
                 padding: 16px;
             }
 
-            .warning-tip {
-                padding: 12px 16px;
+            .article-title {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            h3 {
+                font-size: 18px;
             }
         }
     </style>
 </head>
-<body>
-    <!-- 顶部导航栏：包含高端返回按钮 -->
-    <div class="top-nav">
-        <a href="/" class="back-home-btn">
+<body class="light">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="logo">何哥的博客</a>
+            <ul class="nav-menu">
+                <li><a href="../index.html">首页</a></li>
+                <li><a href="../index.html#projects">项目案例</a></li>
+                <li><a href="../index.html#experience">工作经历</a></li>
+                <li><a href="../pages/articles.html">技术文章</a></li>
+                <li><a href="../pages/about.html">关于我</a></li>
+            </ul>
+            <div class="theme-toggle" onclick="toggleTheme()"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- 返回按钮 -->
+        <a href="../pages/articles.html" class="back-button">
             <i class="fas fa-arrow-left"></i>
-            <span>返回主页</span>
+            <span>返回文章列表</span>
         </a>
-    </div>
 
-    <!-- 头部标题区域 -->
-    <div class="header-content">
-        <h1>AI站点部署与CDN防御实战（避坑指南）</h1>
-        <p class="header-desc">作为有18年运维经验的技术人，我在2023年接手AI站点部署项目后，踩过不少坑，今天把可落地的实战方案分享给大家。</p>
-    </div>
+        <!-- 文章头部 -->
+        <div class="article-header">
+            <h1 class="article-title">AI站点部署与CDN防御实战(避坑指南)</h1>
+            <div class="article-meta">
+                <span class="category-badge">AI部署</span>
+                <span><i class="far fa-calendar"></i> 2025-12-18</span>
+                <span><i class="far fa-clock"></i> 阅读 8 分钟</span>
+                <span><i class="far fa-eye"></i> 256 次浏览</span>
+            </div>
+        </div>
 
-    <!-- 目录导航：高端卡片样式 -->
-    <div class="toc">
-        <h4>目录</h4>
-        <ul>
-            <li><a href="#background">一、项目背景</a></li>
-            <li><a href="#deploy-steps">二、核心部署步骤（避坑版）</a></li>
-            <li><a href="#achievements">三、最终成果</a></li>
-            <li><a href="#summary">四、总结</a></li>
-        </ul>
-    </div>
+        <!-- 文章简介 -->
+        <div class="article-intro">
+            作为有18年运维经验的技术人,我在2023年接手AI站点部署项目后,踩过不少坑。今天把可落地的实战方案分享给大家,希望能帮助你少走弯路。
+        </div>
 
-    <!-- 主内容区域：规整网格布局 -->
-    <main>
+        <!-- 目录 -->
+        <div class="toc">
+            <h4>📋 文章目录</h4>
+            <ul>
+                <li><a href="#background">一、项目背景</a></li>
+                <li><a href="#deploy-steps">二、核心部署步骤(避坑版)</a></li>
+                <li><a href="#achievements">三、最终成果</a></li>
+                <li><a href="#summary">四、总结与建议</a></li>
+            </ul>
+        </div>
+
         <!-- 项目背景 -->
         <section class="content-section" id="background">
             <h2>一、项目背景</h2>
-            <p>需求：搭建高可用AI站点，支持500+并发访问，抵御DOS/CC攻击，同时对接第三方API实现功能闭环。</p>
-            <p>环境：云服务器（CentOS 7）+ Nginx + CDN + MySQL 8.0。</p>
+            <p><strong>需求:</strong> 搭建高可用AI站点,支持500+并发访问,抵御DOS/CC攻击,同时对接第三方API实现功能闭环。</p>
+            <p><strong>环境:</strong> 云服务器(CentOS 7) + Nginx + CDN + MySQL 8.0</p>
+            <p><strong>挑战:</strong></p>
+            <ul>
+                <li>AI模型响应时间不稳定,需要优化超时处理</li>
+                <li>面临频繁的网络攻击,必须构建多层防护</li>
+                <li>高并发场景下的性能优化</li>
+                <li>数据安全和API密钥管理</li>
+            </ul>
         </section>
 
         <!-- 核心部署步骤 -->
         <section class="content-section" id="deploy-steps">
-            <h2>二、核心部署步骤（避坑版）</h2>
+            <h2>二、核心部署步骤(避坑版)</h2>
             
-            <h3>1. 服务器环境初始化（必做）</h3>
+            <h3>1. 服务器环境初始化(必做)</h3>
+            <p>首先要做好安全加固,只开放必要的端口:</p>
             <div class="code-container">
                 <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
-                <pre><code># 关闭无用端口，只开放80/443/22
+                <pre><code># 关闭无用端口,只开放80/443/22
 firewall-cmd --permanent --remove-port=3306/tcp
 firewall-cmd --reload
 
@@ -410,71 +624,203 @@ firewall-cmd --reload
 yum install -y gcc pcre-devel zlib-devel openssl-devel</code></pre>
             </div>
             <div class="warning-tip">
-                <strong>坑点</strong>：不要用CentOS 8（停止维护），依赖包缺失会导致Nginx编译失败。
+                <strong>⚠️ 避坑提示:</strong>
+                不要使用CentOS 8(已停止维护),依赖包缺失会导致Nginx编译失败。建议使用CentOS 7或直接转向Rocky Linux。
             </div>
 
             <h3>2. AI站点部署核心配置</h3>
+            <p>API对接是整个系统的核心,这里分享一个带超时重试的稳定版本:</p>
             <div class="code-container">
                 <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
-                <pre><code># 简单的API对接脚本（Python）
+                <pre><code># AI API对接脚本(Python)
 import requests
 import json
+import os
+from functools import wraps
+import time
 
+def retry_on_timeout(max_retries=3, delay=1):
+    """超时重试装饰器"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except requests.exceptions.Timeout:
+                    if attempt < max_retries - 1:
+                        time.sleep(delay)
+                        continue
+                    raise
+        return wrapper
+    return decorator
+
+@retry_on_timeout(max_retries=3, delay=1)
 def ai_api_call(prompt):
-    url = "https://你的AI接口地址/v1/completions"
-    headers = {"Authorization": "Bearer 你的API密钥"}
-    data = {"model": "gpt-3.5-turbo", "prompt": prompt, "max_tokens": 1000}
+    """调用AI接口"""
+    # 从环境变量读取敏感信息
+    api_url = os.getenv('AI_API_URL')
+    api_key = os.getenv('AI_API_KEY')
     
-    try:
-        response = requests.post(url, headers=headers, json=data, timeout=10)
-        return response.json()
-    except requests.exceptions.Timeout:
-        # 超时重试逻辑（避坑：不加重试会导致用户请求失败）
-        return ai_api_call(prompt)</code></pre>
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "model": "gpt-3.5-turbo",
+        "prompt": prompt,
+        "max_tokens": 1000,
+        "temperature": 0.7
+    }
+    
+    response = requests.post(
+        api_url, 
+        headers=headers, 
+        json=data, 
+        timeout=10
+    )
+    
+    return response.json()</code></pre>
             </div>
             <div class="warning-tip">
-                <strong>坑点</strong>：API密钥要存在环境变量里，不要直接写在代码里（防止泄露）。
+                <strong>⚠️ 避坑提示:</strong>
+                <ul style="margin-top: 10px;">
+                    <li>API密钥务必存在环境变量或配置文件中,严禁硬编码</li>
+                    <li>必须添加超时重试机制,否则用户请求会频繁失败</li>
+                    <li>建议设置请求日志,方便排查问题</li>
+                </ul>
             </div>
 
-            <h3>3. CDN防御配置（关键）</h3>
+            <h3>3. CDN防御配置(关键)</h3>
+            <p>CDN不仅能加速,更重要的是能抵御DDoS攻击。以下是我的配置策略:</p>
             <ul>
-                <li>选择阿里云/腾讯云CDN，开启「CC攻击防护」「IP黑白名单」；</li>
-                <li>配置「源站隐藏」（避免直接暴露服务器IP）；</li>
-                <li>缓存规则：静态资源（图片/JS/CSS）缓存7天，动态接口不缓存。</li>
+                <li><strong>选择CDN服务商:</strong> 推荐阿里云/腾讯云CDN,支持完善的防护功能</li>
+                <li><strong>启用CC攻击防护:</strong> 设置单IP访问频率限制(如每秒10次)</li>
+                <li><strong>配置IP黑白名单:</strong> 及时拉黑恶意IP,保护核心接口</li>
+                <li><strong>源站隐藏:</strong> 使用CDN回源,避免直接暴露服务器真实IP</li>
+                <li><strong>缓存规则优化:</strong>
+                    <ul>
+                        <li>静态资源(图片/JS/CSS): 缓存7天</li>
+                        <li>动态API接口: 不缓存或极短缓存(30秒)</li>
+                        <li>HTML页面: 缓存1小时,设置合理的更新策略</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>4. Nginx性能优化配置</h3>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode(this)">复制代码</button>
+                <pre><code># /etc/nginx/nginx.conf 关键配置
+worker_processes auto;
+worker_connections 2048;
+
+http {
+    # 开启gzip压缩
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/json application/javascript;
+    
+    # 限流配置
+    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+    
+    server {
+        listen 80;
+        server_name yourdomain.com;
+        
+        # AI接口限流
+        location /api/ {
+            limit_req zone=api_limit burst=20 nodelay;
+            proxy_pass http://backend;
+            proxy_read_timeout 30s;
+        }
+        
+        # 静态资源缓存
+        location ~* \.(jpg|jpeg|png|gif|css|js)$ {
+            expires 7d;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+}</code></pre>
+            </div>
+
+            <h3>5. 数据库安全加固</h3>
+            <ul>
+                <li>禁止root远程登录,创建专用数据库账户</li>
+                <li>使用强密码(16位以上混合字符)</li>
+                <li>定期备份(每天凌晨自动备份到异地存储)</li>
+                <li>开启慢查询日志,优化性能瓶颈</li>
             </ul>
         </section>
 
         <!-- 最终成果 -->
         <section class="content-section" id="achievements">
             <h2>三、最终成果</h2>
+            <p>经过两个月的优化迭代,项目取得了以下成果:</p>
             <ul>
-                <li>站点稳定性：99.9%（半年内仅因机房割接中断1次，5分钟恢复）；</li>
-                <li>攻击防御：抵御1000+次DOS/CC攻击，无数据泄露；</li>
-                <li>并发支持：500+用户同时访问无卡顿，服务器CPU使用率稳定在30%以内。</li>
+                <li><strong>站点稳定性:</strong> 99.9%(半年内仅因机房割接中断1次,5分钟内恢复)</li>
+                <li><strong>攻击防御:</strong> 成功抵御1000+次DOS/CC攻击,无一次数据泄露</li>
+                <li><strong>并发支持:</strong> 支持500+用户同时访问无卡顿,服务器CPU使用率稳定在30%以内</li>
+                <li><strong>响应速度:</strong> API平均响应时间控制在800ms以内,用户体验良好</li>
+                <li><strong>成本优化:</strong> 通过CDN缓存策略,带宽成本降低40%</li>
             </ul>
         </section>
 
         <!-- 总结 -->
         <section class="content-section" id="summary">
-            <h2>四、总结</h2>
-            <p>AI站点部署的核心是“环境稳+防护严+代码鲁棒”，运维人员要重点关注API超时、IP泄露、攻击防护这三个点，才能保证站点长期可用。</p>
+            <h2>四、总结与建议</h2>
+            <p>AI站点部署的核心是<strong>"环境稳 + 防护严 + 代码鲁棒"</strong>,运维人员要重点关注以下三个方面:</p>
+            
+            <h3>🎯 核心关注点</h3>
+            <ul>
+                <li><strong>API超时处理:</strong> 必须有重试机制,避免单次失败影响用户体验</li>
+                <li><strong>IP泄露防护:</strong> 使用CDN隐藏源站,定期检查DNS解析记录</li>
+                <li><strong>攻击防护:</strong> 多层防御体系(CDN + 防火墙 + Nginx限流)</li>
+            </ul>
+
+            <h3>💡 实战建议</h3>
+            <ul>
+                <li>监控先行: 部署Prometheus + Grafana实时监控系统状态</li>
+                <li>日志完善: 记录所有API调用和异常,方便问题排查</li>
+                <li>自动化运维: 编写脚本实现自动备份、日志轮转、告警通知</li>
+                <li>持续优化: 定期分析性能瓶颈,不断改进架构</li>
+            </ul>
+
+            <p style="margin-top: 20px;">希望这篇文章能帮助你少踩坑,如果有任何问题欢迎交流讨论!</p>
         </section>
     </main>
 
-    <!-- 复制代码功能脚本 -->
     <script>
+        // 主题切换
+        function toggleTheme() {
+            const body = document.body;
+            if (body.classList.contains('light')) {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // 恢复主题
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.classList.add(savedTheme);
+        });
+
+        // 复制代码
         function copyCode(btn) {
-            // 获取父容器下的code标签内容
             const codeBlock = btn.parentElement.querySelector('code');
             const text = codeBlock.textContent;
             
-            // 复制到剪贴板
             navigator.clipboard.writeText(text).then(() => {
-                // 按钮状态反馈
-                btn.textContent = "已复制";
+                btn.textContent = "✓ 已复制";
                 btn.classList.add("copied");
                 
-                // 2秒后恢复按钮文字
                 setTimeout(() => {
                     btn.textContent = "复制代码";
                     btn.classList.remove("copied");
@@ -487,6 +833,20 @@ def ai_api_call(prompt):
                 }, 2000);
             });
         }
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>
