@@ -27,7 +27,7 @@
             color: #e2e8f0;
         }
 
-        /* 导航栏 */
+        /* 导航栏 - 与首页保持一致 */
         .navbar {
             position: fixed;
             top: 0;
@@ -68,21 +68,31 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-decoration: none;
+            transition: transform 0.3s;
+            white-space: nowrap;
         }
 
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        /* 导航菜单 - 所有设备都显示 */
         .nav-menu {
             display: flex;
-            gap: 30px;
             align-items: center;
             list-style: none;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .nav-menu a {
             text-decoration: none;
             font-weight: 500;
             transition: all 0.3s;
-            padding: 8px 16px;
+            padding: 8px 12px;
             border-radius: 8px;
+            font-size: 14px;
+            white-space: nowrap;
         }
 
         body.light .nav-menu a {
@@ -93,18 +103,30 @@
             color: #cbd5e1;
         }
 
-        body.light .nav-menu a:hover,
-        body.light .nav-menu a.active {
+        body.light .nav-menu a:hover {
             color: #3b82f6;
             background: #f3f4f6;
         }
 
-        body.dark .nav-menu a:hover,
-        body.dark .nav-menu a.active {
+        body.dark .nav-menu a:hover {
             color: #60a5fa;
             background: #1e293b;
         }
 
+        /* 当前页面指示器 */
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white !important;
+        }
+
+        /* 导航右侧区域（主题切换） */
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* 主题切换按钮 */
         .theme-toggle {
             width: 50px;
             height: 26px;
@@ -112,6 +134,7 @@
             cursor: pointer;
             position: relative;
             transition: all 0.3s;
+            flex-shrink: 0;
         }
 
         body.light .theme-toggle {
@@ -386,21 +409,124 @@
             font-weight: 600;
         }
 
-        @media (max-width: 768px) {
+        /* 响应式设计 */
+        @media (max-width: 992px) {
             .nav-menu {
-                display: none;
+                gap: 8px;
             }
+            
+            .nav-menu a {
+                padding: 6px 10px;
+                font-size: 13px;
+            }
+        }
 
+        @media (max-width: 768px) {
+            .nav-container {
+                height: 60px;
+                padding: 0 15px;
+            }
+            
+            .logo {
+                font-size: 20px;
+            }
+            
+            .nav-menu {
+                justify-content: flex-end;
+                gap: 5px;
+            }
+            
+            .nav-menu a {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+            
+            .theme-toggle {
+                width: 45px;
+                height: 24px;
+            }
+            
+            .theme-toggle::before {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .main-content {
+                margin: 80px auto 40px;
+                padding: 0 15px;
+            }
+            
             .profile-card {
                 padding: 30px 20px;
             }
-
+            
             .content-section {
                 padding: 25px 20px;
             }
-
+            
             .profile-name {
                 font-size: 28px;
+            }
+            
+            .avatar {
+                width: 120px;
+                height: 120px;
+                font-size: 48px;
+            }
+            
+            .contact-methods {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-menu {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 5px;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .nav-menu::-webkit-scrollbar {
+                height: 3px;
+            }
+            
+            body.light .nav-menu::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+            
+            body.light .nav-menu::-webkit-scrollbar-thumb {
+                background: #888;
+            }
+            
+            body.dark .nav-menu::-webkit-scrollbar-track {
+                background: #1e293b;
+            }
+            
+            body.dark .nav-menu::-webkit-scrollbar-thumb {
+                background: #475569;
+            }
+            
+            .nav-menu a {
+                flex-shrink: 0;
+            }
+            
+            .profile-name {
+                font-size: 24px;
+            }
+            
+            .profile-title {
+                font-size: 18px;
+            }
+            
+            .section-title {
+                font-size: 20px;
+            }
+            
+            .avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
             }
         }
     </style>
@@ -410,14 +536,23 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="../index.html" class="logo">何哥的博客</a>
+            
+            <!-- 导航菜单 - 与首页保持一致 -->
             <ul class="nav-menu">
                 <li><a href="../index.html">首页</a></li>
                 <li><a href="../index.html#projects">项目案例</a></li>
                 <li><a href="../index.html#experience">工作经历</a></li>
                 <li><a href="articles.html">技术文章</a></li>
                 <li><a href="about.html" class="active">关于我</a></li>
+                <li><a href="contact.html">联系我</a></li>
+                <li><a href="resources.html">资源下载</a></li>
+                <li><a href="tutorials.html">教程</a></li>
+                <li><a href="portfolio.html">作品集</a></li>
             </ul>
-            <div class="theme-toggle" onclick="toggleTheme()"></div>
+            
+            <div class="nav-right">
+                <div class="theme-toggle" onclick="toggleTheme()"></div>
+            </div>
         </div>
     </nav>
 
@@ -586,6 +721,18 @@
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.body.classList.add(savedTheme);
+            
+            // 设置当前页面激活状态
+            const currentPage = window.location.pathname;
+            const links = document.querySelectorAll('.nav-menu a');
+            links.forEach(link => {
+                if (link.getAttribute('href') === 'about.html' || 
+                    (currentPage.includes('about') && link.textContent.includes('关于我'))) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
 
             // 技能条动画
             setTimeout(() => {
@@ -594,6 +741,24 @@
                     bar.style.width = width + '%';
                 });
             }, 300);
+        });
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                if (document.body.classList.contains('light')) {
+                    navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+                } else {
+                    navbar.style.background = 'rgba(15, 23, 42, 0.98)';
+                }
+            } else {
+                if (document.body.classList.contains('light')) {
+                    navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+                } else {
+                    navbar.style.background = 'rgba(15, 23, 42, 0.95)';
+                }
+            }
         });
     </script>
 </body>
