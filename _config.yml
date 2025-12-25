@@ -82,3 +82,6 @@ lang: zh-CN # 网站语言（中文）
 timezone: Asia/Shanghai # 时区（确保文章时间正确）
 paginate: 10 # 每页显示10篇文章（合理分页，高端感）
 paginate_path: "/posts/page/:num/" # 分页路径
+# _config.yml
+url: "https://cdn.jsdelivr.net/gh/yj8188/yj8188.github.io@master" # jsDelivr CDN作为基础URL
+baseurl: "" # 通常设为空，因为你的站点直接在根目录
