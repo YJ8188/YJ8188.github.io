@@ -29,145 +29,14 @@
             color: #e2e8f0;
         }
 
-        /* 导航栏 - 所有设备都显示 */
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-        }
-
-        body.light .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            border-bottom: 1px solid #e5e7eb;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        body.dark .navbar {
-            background: rgba(15, 23, 42, 0.95);
-            border-bottom: 1px solid #1e293b;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
-            transition: transform 0.3s;
-            white-space: nowrap;
-        }
-
-        .logo:hover {
-            transform: scale(1.05);
-        }
-
-        /* 导航菜单 - 所有设备都显示 */
-        .nav-menu {
-            display: flex;
-            align-items: center;
-            list-style: none;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .nav-menu a {
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-
-        body.light .nav-menu a {
-            color: #4b5563;
-        }
-
-        body.dark .nav-menu a {
-            color: #cbd5e1;
-        }
-
-        body.light .nav-menu a:hover {
-            color: #3b82f6;
-            background: #f3f4f6;
-        }
-
-        body.dark .nav-menu a:hover {
-            color: #60a5fa;
-            background: #1e293b;
-        }
-
-        /* 当前页面指示器 */
-        .nav-menu a.active {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: white !important;
-        }
-
-        /* 导航右侧区域（主题切换） */
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        /* 主题切换按钮 */
-        .theme-toggle {
-            width: 50px;
-            height: 26px;
-            border-radius: 13px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s;
-            flex-shrink: 0;
-        }
-
-        body.light .theme-toggle {
-            background: #e5e7eb;
-        }
-
-        body.dark .theme-toggle {
-            background: #3b82f6;
-        }
-
-        .theme-toggle::before {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            top: 3px;
-            left: 3px;
-            background: white;
-            transition: all 0.3s;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        body.dark .theme-toggle::before {
-            transform: translateX(24px);
-        }
+        /* ===== 已删除：导航栏CSS样式 ===== */
+        /* 原代码位置：第30-100行的导航栏相关CSS已删除 */
+        /* 这些样式已移至 navbar.html 文件中 */
 
         /* 主内容区域 */
         .main-content {
             max-width: 1200px;
-            margin: 100px auto 0;
+            margin: 100px auto 0; /* 顶部margin保留，为导航栏留空间 */
             padding: 0 20px 60px;
         }
 
@@ -484,49 +353,11 @@
             .section-title {
                 font-size: 28px;
             }
-            
-            .nav-menu {
-                gap: 8px;
-            }
-            
-            .nav-menu a {
-                padding: 6px 10px;
-                font-size: 13px;
-            }
         }
 
         @media (max-width: 768px) {
-            .nav-container {
-                height: 60px;
-                padding: 0 15px;
-            }
-            
-            .logo {
-                font-size: 20px;
-            }
-            
-            .nav-menu {
-                justify-content: flex-end;
-                gap: 5px;
-            }
-            
-            .nav-menu a {
-                padding: 6px 8px;
-                font-size: 12px;
-            }
-            
-            .theme-toggle {
-                width: 45px;
-                height: 24px;
-            }
-            
-            .theme-toggle::before {
-                width: 18px;
-                height: 18px;
-            }
-            
             .main-content {
-                margin: 80px auto 0;
+                margin: 80px auto 0; /* 移动端导航栏高度较小 */
                 padding: 0 15px 40px;
             }
             
@@ -579,37 +410,6 @@
         }
 
         @media (max-width: 480px) {
-            .nav-menu {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                padding-bottom: 5px;
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            .nav-menu::-webkit-scrollbar {
-                height: 3px;
-            }
-            
-            body.light .nav-menu::-webkit-scrollbar-track {
-                background: #f1f1f1;
-            }
-            
-            body.light .nav-menu::-webkit-scrollbar-thumb {
-                background: #888;
-            }
-            
-            body.dark .nav-menu::-webkit-scrollbar-track {
-                background: #1e293b;
-            }
-            
-            body.dark .nav-menu::-webkit-scrollbar-thumb {
-                background: #475569;
-            }
-            
-            .nav-menu a {
-                flex-shrink: 0;
-            }
-            
             .hero {
                 padding: 40px 15px;
             }
@@ -629,29 +429,10 @@
     </style>
 </head>
 <body class="light">
-    <!-- 导航栏 - 所有设备都显示 -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="#home" class="logo">何哥的博客</a>
-            
-            <!-- 导航菜单 - 根据您的文件内容创建 -->
-            <ul class="nav-menu">
-                <li><a href="#home" class="active">首页</a></li>
-                <li><a href="#projects">项目案例</a></li>
-                <li><a href="#experience">工作经历</a></li>
-                <li><a href="pages/articles.html">技术文章</a></li>
-                <li><a href="pages/about.html">关于我</a></li>
-                <li><a href="pages/contact.html">联系我</a></li>
-                <li><a href="pages/resources.html">资源下载</a></li>
-                <li><a href="pages/tutorials.html">教程</a></li>
-                <li><a href="pages/portfolio.html">作品集</a></li>
-            </ul>
-            
-            <div class="nav-right">
-                <div class="theme-toggle" onclick="toggleTheme()"></div>
-            </div>
-        </div>
-    </nav>
+    <!-- ===== 新增：加载公共导航栏和回到顶部按钮 ===== -->
+    <!-- 原导航栏代码（第112-138行）已删除，替换为这一行 -->
+    <!-- 加载脚本会自动插入导航栏、主题切换按钮和回到顶部按钮 -->
+    <script src="load-navbar.js"></script>
 
     <!-- 主内容 -->
     <main class="main-content">
@@ -661,8 +442,8 @@
             <h2>18年运维老兵 · AI部署专家 · Python自动化架构师</h2>
             <p>专注服务器运维、云原生实践、AI站点部署与Python自动化<br>分享可落地的技术方案、踩坑经验与行业洞察</p>
             <div class="hero-buttons">
-                <a href="/resume.html" class="btn btn-primary">查看完整简历</a>
-                <a href="/ai-deploy-cdn-defense.html" class="btn btn-secondary">浏览技术文章</a>
+                <a href="resume.html" class="btn btn-primary">查看完整简历</a>
+                <a href="posts/docker-deployment.html" class="btn btn-secondary">浏览技术文章</a>
             </div>
         </section>
 
@@ -724,29 +505,6 @@
             <p style="font-weight: 600; color: #059669;">项目成果:设备故障响应时间从2小时缩短至15分钟,运维人力成本降低40%</p>
         </div>
 
-        <!-- 职业历程 -->
-        <!-- h2 class="section-title" id="experience">📜 职业沉淀</h2>
-        <div class="timeline">
-            <div class="timeline-item">
-                <div class="timeline-dot blue"></div>
-                <h4>聚合付(河北)信息技术服务有限公司</h4>
-                <p class="timeline-date">技术员 | 2023.05-2025.04</p>
-                <p>AI平台运维、云服务器管理、Python自动化开发、客户技术支持</p>
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-dot green"></div>
-                <h4>邯郸市志和堂医药连锁有限公司</h4>
-                <p class="timeline-date">运维工程师 | 2013.12-2019.12</p>
-                <p>门店设备运维、网络搭建、桌面系统管理、软件部署与故障排查</p>
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-dot orange"></div>
-                <h4>远东科技有限公司</h4>
-                <p class="timeline-date">运维工程师 | 2008.01-2013.12</p>
-                <p>项目管理、设备安装调试、技术培训、客户需求调研与系统优化</p>
-            </div>
-        </div> 
-
         <!-- 联系方式 -->
         <section class="contact-section">
             <h3>欢迎交流合作</h3>
@@ -756,38 +514,15 @@
     </main>
 
     <script>
-        // 主题切换功能
-        function toggleTheme() {
-            const body = document.body;
-            if (body.classList.contains('light')) {
-                body.classList.remove('light');
-                body.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                body.classList.remove('dark');
-                body.classList.add('light');
-                localStorage.setItem('theme', 'light');
-            }
-        }
-
-        // 页面加载时恢复主题设置
+        // ===== 保留：页面加载时恢复主题设置 =====
+        // 注意：主题切换功能已移至 navbar.html，这里只保留主题初始化
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.body.classList.add(savedTheme);
-            
-            // 设置当前页面激活状态
-            const currentPage = window.location.hash || '#home';
-            const links = document.querySelectorAll('.nav-menu a');
-            links.forEach(link => {
-                if (link.getAttribute('href') === currentPage) {
-                    link.classList.add('active');
-                } else {
-                    link.classList.remove('active');
-                }
-            });
         });
 
-        // 平滑滚动
+        // ===== 保留：平滑滚动到页面内锚点 =====
+        // 这个功能只影响页面内的#锚点跳转，保留
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 const href = this.getAttribute('href');
@@ -795,12 +530,6 @@
                     e.preventDefault();
                     const target = document.querySelector(href);
                     if (target) {
-                        // 更新激活状态
-                        document.querySelectorAll('.nav-menu a').forEach(link => {
-                            link.classList.remove('active');
-                        });
-                        this.classList.add('active');
-                        
                         target.scrollIntoView({
                             behavior: 'smooth',
                             block: 'start'
@@ -810,23 +539,17 @@
             });
         });
 
-        // 导航栏滚动效果
-        window.addEventListener('scroll', () => {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                if (document.body.classList.contains('light')) {
-                    navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-                } else {
-                    navbar.style.background = 'rgba(15, 23, 42, 0.98)';
-                }
-            } else {
-                if (document.body.classList.contains('light')) {
-                    navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-                } else {
-                    navbar.style.background = 'rgba(15, 23, 42, 0.95)';
-                }
-            }
-        });
+        // ===== 已删除：主题切换功能 =====
+        // 原toggleTheme()函数（第300-312行）已删除，移至navbar.html
+        
+        // ===== 已删除：导航栏滚动效果代码 =====
+        // 原window.addEventListener('scroll'...（第350-365行）已删除，移至navbar.html
+        
+        // ===== 已删除：导航栏当前页面激活状态设置 =====
+        // 原设置当前页面激活状态的代码（第314-327行）已删除，移至navbar.html
+        
+        // ===== 已删除：回到顶部按钮相关代码 =====
+        // 原代码中没有显式的回到顶部按钮，但如有也会被删除
     </script>
 </body>
 </html>
