@@ -588,19 +588,29 @@
         }
     </style>
 </head>
+</head>
 <body class="light">
-    <!-- 导航栏 -->
+    <!-- 导航栏 - 所有设备都显示 -->
     <nav class="navbar">
         <div class="nav-container">
-            <a href="../index.html" class="logo">何哥的博客</a>
+            <a href="#home" class="logo">何哥的博客</a>
+            
+            <!-- 导航菜单 - 根据您的文件内容创建 -->
             <ul class="nav-menu">
-                <li><a href="../index.html">首页</a></li>
-                <li><a href="../index.html#projects">项目案例</a></li>
-                <li><a href="../index.html#experience">工作经历</a></li>
-                <li><a href="../pages/articles.html">技术文章</a></li>
-                <li><a href="../pages/about.html">关于我</a></li>
+                <li><a href="#home" class="active">首页</a></li>
+                <li><a href="#projects">项目案例</a></li>
+                <li><a href="#experience">工作经历</a></li>
+                <li><a href="pages/articles.html">技术文章</a></li>
+                <li><a href="pages/about.html">关于我</a></li>
+                <li><a href="pages/contact.html">联系我</a></li>
+                <li><a href="pages/resources.html">资源下载</a></li>
+                <li><a href="pages/tutorials.html">教程</a></li>
+                <li><a href="pages/portfolio.html">作品集</a></li>
             </ul>
-            <div class="theme-toggle" onclick="toggleTheme()"></div>
+            
+            <div class="nav-right">
+                <div class="theme-toggle" onclick="toggleTheme()"></div>
+            </div>
         </div>
     </nav>
 
