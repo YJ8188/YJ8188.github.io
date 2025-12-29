@@ -28,120 +28,14 @@
             color: #e2e8f0;
         }
 
-        /* 导航栏 */
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-        }
-
-        body.light .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            border-bottom: 1px solid #e5e7eb;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        body.dark .navbar {
-            background: rgba(15, 23, 42, 0.95);
-            border-bottom: 1px solid #1e293b;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
-        }
-
-        .nav-menu {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-            list-style: none;
-        }
-
-        .nav-menu a {
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            padding: 8px 16px;
-            border-radius: 8px;
-        }
-
-        body.light .nav-menu a {
-            color: #4b5563;
-        }
-
-        body.dark .nav-menu a {
-            color: #cbd5e1;
-        }
-
-        body.light .nav-menu a:hover {
-            color: #3b82f6;
-            background: #f3f4f6;
-        }
-
-        body.dark .nav-menu a:hover {
-            color: #60a5fa;
-            background: #1e293b;
-        }
-
-        .theme-toggle {
-            width: 50px;
-            height: 26px;
-            border-radius: 13px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        body.light .theme-toggle {
-            background: #e5e7eb;
-        }
-
-        body.dark .theme-toggle {
-            background: #3b82f6;
-        }
-
-        .theme-toggle::before {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            top: 3px;
-            left: 3px;
-            background: white;
-            transition: all 0.3s;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        body.dark .theme-toggle::before {
-            transform: translateX(24px);
-        }
+        /* ===== 已删除：导航栏CSS样式 ===== */
+        /* 原代码位置：第30-100行的导航栏相关CSS已删除 */
+        /* 这些样式已移至 navbar.html 文件中 */
 
         /* 主内容区 */
         .main-content {
             max-width: 900px;
-            margin: 100px auto 60px;
+            margin: 100px auto 60px; /* 顶部margin保留，为导航栏留空间 */
             padding: 0 20px;
         }
 
@@ -436,8 +330,9 @@
 
         /* 响应式适配 */
         @media (max-width: 768px) {
-            .nav-menu {
-                display: none;
+            .main-content {
+                margin: 80px auto 40px; /* 移动端导航栏高度较小 */
+                padding: 0 16px;
             }
 
             .resume-header h1 {
@@ -458,10 +353,6 @@
         }
 
         @media (max-width: 480px) {
-            .main-content {
-                padding: 0 16px;
-            }
-
             .resume-header {
                 padding: 25px 15px;
             }
@@ -478,27 +369,14 @@
     </style>
 </head>
 <body class="light">
-    <!-- 导航栏 -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="../index.html" class="logo">何哥的博客</a>
-            <ul class="nav-menu">
-                <li><a href="../index.html">首页</a></li>
-                <li><a href="../index.html#projects">项目案例</a></li>
-                <li><a href="../index.html#experience">工作经历</a></li>
-                <li><a href="../pages/articles.html">技术文章</a></li>
-                <li><a href="../pages/about.html">关于我</a></li>
-                <li><a href="pages/resources.html">资源下载</a></li>
-                <li><a href="pages/tutorials.html">教程</a></li>
-                <li><a href="pages/portfolio.html">作品集</a></li>
-            </ul>
-            <div class="theme-toggle" onclick="toggleTheme()"></div>
-        </div>
-    </nav>
+    <!-- ===== 新增：加载公共导航栏和回到顶部按钮 ===== -->
+    <!-- 原导航栏代码（第109-132行）已删除，替换为这一行 -->
+    <!-- 注意：resume.html在根目录，所以路径为 load-navbar.js -->
+    <script src="load-navbar.js"></script>
 
     <main class="main-content">
         <!-- 返回按钮 -->
-        <a href="../index.html" class="back-button">
+        <a href="index.html" class="back-button">
             <i class="fas fa-arrow-left"></i>
             <span>返回主页</span>
         </a>
@@ -592,27 +470,18 @@
     </main>
 
     <script>
-        // 主题切换
-        function toggleTheme() {
-            const body = document.body;
-            if (body.classList.contains('light')) {
-                body.classList.remove('light');
-                body.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                body.classList.remove('dark');
-                body.classList.add('light');
-                localStorage.setItem('theme', 'light');
-            }
-        }
-
-        // 恢复主题
+        // ===== 已删除：主题切换功能 =====
+        // 原toggleTheme()函数（第299-310行）已删除，移至navbar.html
+        
+        // ===== 保留：页面加载时恢复主题设置 =====
+        // 注意：主题切换功能已移至 navbar.html，这里只保留主题初始化
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.body.classList.add(savedTheme);
         });
 
-        // 平滑滚动
+        // ===== 保留：平滑滚动到页面内锚点 =====
+        // 这个功能只影响页面内的#锚点跳转，保留
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -625,6 +494,11 @@
                 }
             });
         });
+
+        // ===== 已删除：导航栏相关代码 =====
+        // 原导航栏HTML（第109-132行）已删除
+        // 原导航栏CSS（第30-100行）已删除
+        // 原导航栏JS功能已移至navbar.html
     </script>
 </body>
 </html>
