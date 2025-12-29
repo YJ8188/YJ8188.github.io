@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>何哥的博客 - 18年运维老兵</title>
+    
+    <link rel="stylesheet" href="css/navbar.css">
     <style>
         * {
             margin: 0;
@@ -29,9 +31,6 @@
             color: #e2e8f0;
         }
 
-        /* ===== 已删除：导航栏CSS样式 ===== */
-        /* 原代码位置：第30-100行的导航栏相关CSS已删除 */
-        /* 这些样式已移至 navbar.html 文件中 */
 
         /* 主内容区域 */
         .main-content {
@@ -429,12 +428,8 @@
     </style>
 </head>
 <body class="light">
-    <!-- ===== 新增：加载公共导航栏和回到顶部按钮 ===== -->
-    <!-- 原导航栏代码（第112-138行）已删除，替换为这一行 -->
-    <!-- 加载脚本会自动插入导航栏、主题切换按钮和回到顶部按钮 -->
-    <script src="load-navbar.js"></script>
-
-    <!-- 主内容 -->
+    <div id="navbar-container"></div>
+   <!-- 主内容 -->
     <main class="main-content">
         <!-- Hero区域 -->
         <section class="hero" id="home">
@@ -513,14 +508,12 @@
         </section>
     </main>
 
-    <script>
-        // ===== 保留：页面加载时恢复主题设置 =====
-        // 注意：主题切换功能已移至 navbar.html，这里只保留主题初始化
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.body.classList.add(savedTheme);
-        });
+        <!-- ✅ 先功能 -->
+    <script src="js/navbar.js"></script>
 
+    <!-- ✅ 再加载 -->
+    <script src="js/load-navbar.js"></script>
+    <script>
         // ===== 保留：平滑滚动到页面内锚点 =====
         // 这个功能只影响页面内的#锚点跳转，保留
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -538,18 +531,6 @@
                 }
             });
         });
-
-        // ===== 已删除：主题切换功能 =====
-        // 原toggleTheme()函数（第300-312行）已删除，移至navbar.html
-        
-        // ===== 已删除：导航栏滚动效果代码 =====
-        // 原window.addEventListener('scroll'...（第350-365行）已删除，移至navbar.html
-        
-        // ===== 已删除：导航栏当前页面激活状态设置 =====
-        // 原设置当前页面激活状态的代码（第314-327行）已删除，移至navbar.html
-        
-        // ===== 已删除：回到顶部按钮相关代码 =====
-        // 原代码中没有显式的回到顶部按钮，但如有也会被删除
     </script>
 </body>
 </html>
